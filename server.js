@@ -4,7 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { renderDeck } = require("./packages/render-pptx");
-const { generateDeck } = require("./packages/ai-provider");
+const { generateDeck, reviewDeckWithAI } = require("./packages/ai-provider");
 const { reviewDeck } = require("./packages/design-workflow/quality");
 const { renderWebsite } = require("./packages/render-html");
 
@@ -70,6 +70,17 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       if (res.destroyed) return;
       return sendJson(res, error.statusCode || 400, { error: error.message });
+    }
+  }
+  if (req.method === "POST" && url.pathname === "/api/review/deck") {
+    try {
+      const deck = await readJson(req);
+      const result = await reviewDeckWithAI(deck);
+      return sendJson(res, 200, result);
+    } catch (error) {
+      if (res.destroyed) return;
+      const status = error.statusCode || (error.code === "AI_NOT_CONFIGURED" ? 503 : error.code === "INVALID_DECK" ? 422 : error.code === "AI_UPSTREAM_ERROR" ? 502 : error.code === "AI_INVALID_OUTPUT" ? 502 : 500);
+      return sendJson(res, status, { error: error.message, code: error.code || "INTERNAL_ERROR", details: error.details || undefined });
     }
   }
   if (req.method === "POST" && url.pathname === "/api/generate/deck") {

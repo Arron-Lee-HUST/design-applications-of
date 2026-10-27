@@ -47,3 +47,18 @@ test("rejects malformed model JSON", async () => {
 test("parses optional JSON code fences", () => {
   assert.deepEqual(parseJsonContent(' ```json\n{"slides":[]}\n``` '), { slides: [] });
 });
+
+test("AI review returns bounded, normalized findings", async () => {
+  const { reviewDeckWithAI } = require("../packages/ai-provider");
+  const sample = {
+    schemaVersion: "1.0.0",
+    metadata: { title: "Deck", audience: "Team", brief: "Brief", tone: "Clear" },
+    design: { direction: "editorial", aspectRatio: "16:9", theme: "editorial" },
+    slides: [{ id: "s1", order: 1, layout: "title-body", title: "Intro", body: "Context", notes: "" }]
+  };
+  const fakeFetch = async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: JSON.stringify({ findings: [{ slide: 1, severity: "warning", issue: "信息不足", suggestion: "补充证据" }] }) } }] }) });
+  const result = await reviewDeckWithAI(sample, { AI_API_KEY: "test" }, fakeFetch);
+  assert.equal(result.findings.length, 1);
+  assert.equal(result.findings[0].slide, 1);
+  assert.equal(result.findings[0].severity, "warning");
+});

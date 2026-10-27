@@ -112,4 +112,67 @@ async function generateDeck(input, env = process.env, fetchImpl = fetch) {
   return deck;
 }
 
-module.exports = { generateDeck, parseJsonContent };
+
+async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
+  const validation = validateDeck(deck);
+  if (!validation.valid) {
+    const error = new Error("Invalid deck: " + validation.errors.join("; "));
+    error.code = "INVALID_DECK";
+    error.details = validation.errors;
+    throw error;
+  }
+  const apiKey = env.AI_API_KEY;
+  if (!apiKey) {
+    const error = new Error("尚未配置 AI_API_KEY。请在服务端环境变量中配置。");
+    error.code = "AI_NOT_CONFIGURED";
+    throw error;
+  }
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const model = env.AI_MODEL || "gpt-4o-mini";
+  const compact = {
+    title: deck.metadata.title,
+    audience: deck.metadata.audience,
+    brief: deck.metadata.brief,
+    direction: deck.design.direction,
+    slides: deck.slides.map((slide, index) => ({ slide: index + 1, title: slide.title, body: slide.body }))
+  };
+  let response;
+  try {
+    response = await fetchImpl(baseUrl + "/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: "你是严谨的演示文稿编辑。只返回 JSON，不得编造事实或来源。" },
+          { role: "user", content: "评审以下演示文稿。检查故事线、重复、可读性、信息密度、受众匹配和缺少证据的事实陈述。只指出可操作的问题，不要把主观偏好说成错误。返回 JSON：{\\"findings\\":[{\\"slide\\":1,\\"severity\\":\\"error|warning|info\\",\\"issue\\":\\"问题\\",\\"suggestion\\":\\"具体改进建议\\"}]}。最多 12 条；没有问题时返回空数组。\\n" + JSON.stringify(compact) }
+        ]
+      }),
+      signal: AbortSignal.timeout(45000)
+    });
+  } catch (error) {
+    const wrapped = new Error("调用 AI 评审服务失败：" + (error.name === "TimeoutError" ? "请求超时" : error.message));
+    wrapped.code = "AI_UPSTREAM_ERROR";
+    throw wrapped;
+  }
+  if (!response.ok) {
+    const error = new Error("AI 服务返回 HTTP " + response.status);
+    error.code = "AI_UPSTREAM_ERROR";
+    error.statusCode = 502;
+    throw error;
+  }
+  const payload = await response.json();
+  const parsed = parseJsonContent(payload?.choices?.[0]?.message?.content);
+  if (!Array.isArray(parsed.findings)) throw Object.assign(new Error("AI 评审结果格式无效"), { code: "AI_INVALID_OUTPUT" });
+  const findings = parsed.findings.slice(0, 12).map(item => ({
+    slide: Number.isInteger(item.slide) && item.slide >= 1 && item.slide <= deck.slides.length ? item.slide : null,
+    severity: ["error", "warning", "info"].includes(item.severity) ? item.severity : "info",
+    issue: String(item.issue || "未提供问题描述").slice(0, 500),
+    suggestion: String(item.suggestion || "请人工复核该页面。").slice(0, 1000)
+  }));
+  return { model, findings, reviewedSlides: deck.slides.length, note: "AI 评审是建议，不是事实核验；请由作者确认后再修改。" };
+}
+
+module.exports = { generateDeck, reviewDeckWithAI, parseJsonContent };
