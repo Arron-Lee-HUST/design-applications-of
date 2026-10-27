@@ -188,7 +188,7 @@ async function rewriteSlide(deck, slideIndex, instruction, env = process.env, fe
   const model = env.AI_MODEL || "gpt-4o-mini";
   const current = deck.slides[slideIndex];
   const neighbors = deck.slides.map((slide, index) => ({ slide: index + 1, title: slide.title })).filter(item => Math.abs(item.slide - (slideIndex + 1)) <= 1);
-  const prompt = "请只重写指定页面，保持整个演示文稿故事线连贯。不要编造数据、引文或事实。只返回 JSON：{\\"title\\":\\"...\\",\\"body\\":\\"...\\",\\"notes\\":\\"...\\"}。\\n" +
+  const prompt = "请只重写指定页面，保持整个演示文稿故事线连贯。不要编造数据、引文或事实。只返回 JSON：" + JSON.stringify({ title: "...", body: "...", notes: "..." }) + "。\n" +
     "演示文稿标题：" + deck.metadata.title + "\\n受众：" + deck.metadata.audience + "\\n简报：" + deck.metadata.brief + "\\n视觉方向：" + deck.design.direction +
     "\\n相邻页面标题：" + JSON.stringify(neighbors) + "\\n当前页面：" + JSON.stringify({ title: current.title, body: current.body, notes: current.notes }) +
     "\\n修改要求：" + request;
