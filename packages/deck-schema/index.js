@@ -3,6 +3,7 @@
 const SUPPORTED_SCHEMA_VERSION = "1.0.0";
 const DIRECTIONS = new Set(["editorial", "modern", "data"]);
 const THEMES = new Set(["editorial", "dark", "analytical"]);
+const LAYOUTS = new Set(["title-body", "section-divider", "metric-highlight"]);
 
 function validateDeck(deck) {
   const errors = [];
@@ -53,7 +54,10 @@ function validateDeck(deck) {
         errors.push(prefix + ".imageAlt must be a string up to 300 characters");
       }
       if (slide.imageSource !== undefined && (typeof slide.imageSource !== "string" || slide.imageSource.length > 500)) errors.push(prefix + ".imageSource must be a string up to 500 characters");
-      if (slide.layout !== "title-body") errors.push(prefix + ".layout is unsupported");
+      if (!LAYOUTS.has(slide.layout)) errors.push(prefix + ".layout is unsupported");
+      if (slide.metricValue !== undefined && (typeof slide.metricValue !== "string" || slide.metricValue.length > 80)) errors.push(prefix + ".metricValue must be a string up to 80 characters");
+      if (slide.metricLabel !== undefined && (typeof slide.metricLabel !== "string" || slide.metricLabel.length > 120)) errors.push(prefix + ".metricLabel must be a string up to 120 characters");
+      if (slide.layout === "metric-highlight" && (!String(slide.metricValue || "").trim() || !String(slide.metricLabel || "").trim())) errors.push(prefix + " metric-highlight layout requires metricValue and metricLabel");
     });
   }
   return { valid: errors.length === 0, errors };
