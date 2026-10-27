@@ -10,6 +10,7 @@ const { renderWebsite } = require("./packages/render-html");
 const { searchPexels, importPexelsImage } = require("./packages/assets/pexels");
 
 const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "127.0.0.1";
 const ROOT = __dirname;
 const DEFAULT_MAX_BODY_BYTES = 10 * 1024 * 1024;
 const configuredBodyLimit = Number(process.env.MAX_BODY_BYTES || DEFAULT_MAX_BODY_BYTES);
@@ -47,6 +48,10 @@ function readJson(req, maxBytes = MAX_BODY_BYTES) {
 }
 
 const server = http.createServer(async (req, res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   const url = new URL(req.url, "http://localhost");
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { status: "ok", service: "design-studio-export", pptx: true });
@@ -152,6 +157,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
   if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
+    res.setHeader("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.pexels.com; connect-src 'self'; form-action 'self'");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
     return fs.createReadStream(path.join(ROOT, "index.html")).pipe(res);
   }
@@ -160,8 +166,8 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
-  server.listen(PORT, () => {
-    console.log("Design Studio running at http://localhost:" + server.address().port);
+  server.listen(PORT, HOST, () => {
+    console.log("Design Studio running at http://localhost:" + server.address().port + " (bind " + HOST + ")");
   });
 }
 
