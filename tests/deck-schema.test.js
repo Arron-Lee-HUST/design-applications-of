@@ -55,3 +55,15 @@ test("accepts bounded embedded image data and rejects remote image URLs", () => 
   deck.slides[0].imageData = "https://example.com/image.png";
   assert.equal(validateDeck(deck).valid, false);
 });
+
+test("accepts section-divider and metric-highlight layouts with bounded metric fields", () => {
+  const deck = validDeck();
+  deck.slides[0].layout = "section-divider";
+  assert.equal(validateDeck(deck).valid, true);
+  deck.slides[0].layout = "metric-highlight";
+  deck.slides[0].metricValue = "35%";
+  deck.slides[0].metricLabel = "Conversion improvement";
+  assert.equal(validateDeck(deck).valid, true);
+  delete deck.slides[0].metricValue;
+  assert.ok(validateDeck(deck).errors.some(error => error.includes("requires metricValue and metricLabel")));
+});

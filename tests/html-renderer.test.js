@@ -42,3 +42,16 @@ test("renders embedded images with escaped alternative text", () => {
   assert.match(html, /alt="Diagram"/);
   assert.match(html, /图片来源：Author \/ CC BY 4\.0/);
 });
+
+test("renders section-divider and metric-highlight website layouts", () => {
+  const input = deck();
+  input.slides[0].layout = "section-divider";
+  input.slides[1].layout = "metric-highlight";
+  input.slides[1].metricValue = "35%";
+  input.slides[1].metricLabel = "Conversion < improvement";
+  const html = renderWebsite(input);
+  assert.match(html, /class="story layout-section-divider"/);
+  assert.match(html, /class="story layout-metric-highlight"/);
+  assert.match(html, /class="metric-callout"/);
+  assert.match(html, /Conversion &lt; improvement/);
+});
