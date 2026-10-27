@@ -13,6 +13,7 @@ document.addEventListener("click",e=>{if(historyRelevant(e.target,"click")&&!his
 document.addEventListener("input",e=>finishHistoryEvent(e),false);
 document.addEventListener("change",e=>finishHistoryEvent(e),false);
 document.addEventListener("click",e=>finishHistoryEvent(e),false);
+document.addEventListener("click",e=>{if(!pendingHistoryBefore&&e.target.closest&&e.target.closest("#prev,#next,[data-dot]"))lastHistorySnapshot=historySnapshot();},false);
 function finishHistoryEvent(e){if(historyApplying||!pendingHistoryBefore)return;const before=pendingHistoryBefore;pendingHistoryBefore=null;const after=historySnapshot();if(after===before)return;undoStack.push(before);if(undoStack.length>100)undoStack.shift();redoStack=[];lastHistorySnapshot=after;updateHistoryButtons();}
 function applyHistorySnapshot(raw){const state=JSON.parse(raw);historyApplying=true;slides=state.slides;current=Math.max(0,Math.min(state.current,slides.length-1));direction=state.direction;$("#title").value=state.title;$("#audience").value=state.audience;$("#brief").value=state.brief;$("#tone").value=state.tone;document.querySelectorAll(".direction").forEach(x=>x.classList.toggle("selected",x.dataset.direction===direction));renderOutline();renderPreview();historyApplying=false;lastHistorySnapshot=historySnapshot();pendingHistoryBefore=null;updateHistoryButtons();}
 function undoEdit(){if(!undoStack.length)return;redoStack.push(historySnapshot());applyHistorySnapshot(undoStack.pop());toast("已撤销上一次编辑");}
