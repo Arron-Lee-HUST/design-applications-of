@@ -28,5 +28,6 @@ jobs:
             const via = (item.via || []).map(v => typeof v === "string" ? v : v.title || v.name || "advisory").join("; ");
             console.log(`- ${name}: severity=${item.severity}; range=${item.range}; fixAvailable=${JSON.stringify(item.fixAvailable)}; via=${via}`);
           }
+          if (entries.some(([, item]) => ["high", "critical"].includes(item.severity))) process.exitCode = 1;
           NODE
       - run: npm test
