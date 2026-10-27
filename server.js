@@ -6,6 +6,7 @@ const path = require("node:path");
 const { renderDeck } = require("./packages/render-pptx");
 const { generateDeck } = require("./packages/ai-provider");
 const { reviewDeck } = require("./packages/design-workflow/quality");
+const { renderWebsite } = require("./packages/render-html");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
@@ -41,6 +42,26 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { status: "ok", service: "design-studio-export", pptx: true });
+  }
+  if (req.method === "POST" && url.pathname === "/api/export/site") {
+    try {
+      const deck = await readJson(req);
+      const html = renderWebsite(deck);
+      const rawTitle = typeof deck.metadata?.title === "string" ? deck.metadata.title : "website";
+      const filename = rawTitle.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "website";
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": Buffer.byteLength(html),
+        "Content-Disposition": 'attachment; filename="' + filename + '.html"',
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      });
+      return res.end(html);
+    } catch (error) {
+      if (res.destroyed) return;
+      const status = error.statusCode || (error.code === "INVALID_DECK" ? 422 : 500);
+      return sendJson(res, status, { error: error.message, details: error.details || undefined });
+    }
   }
   if (req.method === "POST" && url.pathname === "/api/quality/check") {
     try {
