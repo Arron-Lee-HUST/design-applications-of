@@ -115,6 +115,30 @@ function renderDeck(deck) {
         fontFace: "Aptos", fontSize: 14, color: theme.muted,
         margin: 0, breakLine: false, valign: "top", fit: "shrink"
       });
+    } else if (item.layout === "chart") {
+      slide.addText(item.title, {
+        x: 0.75, y: 1.05, w: hasImage ? 6.8 : 10.5, h: 0.8,
+        fontFace: theme.font, fontSize: 26, bold: true,
+        color: theme.ink, margin: 0, breakLine: false, fit: "shrink"
+      });
+      if (item.body) slide.addText(item.body, {
+        x: 0.78, y: 1.9, w: hasImage ? 6.5 : 9.4, h: 0.6,
+        fontFace: "Aptos", fontSize: 12, color: theme.muted,
+        margin: 0, breakLine: false, fit: "shrink"
+      });
+      slide.addChart(item.chartType === "line" ? pptx.ChartType.line : pptx.ChartType.bar, [{
+        name: item.title || "Series",
+        labels: item.chartLabels,
+        values: item.chartValues
+      }], {
+        x: 0.75, y: 2.55, w: hasImage ? 6.7 : 10.5, h: 3.75,
+        showLegend: false, showTitle: false, showValue: true,
+        chartColors: [theme.accent],
+        catAxisLabelColor: theme.muted, valAxisLabelColor: theme.muted,
+        valAxisMinVal: 0, showCatName: false,
+        showCatAxisTitle: false, showValAxisTitle: false,
+        valGridLine: { color: theme.muted, transparency: 82 }
+      });
     } else {
       slide.addText(item.title, {
         x: 0.75, y: 1.55, w: hasImage ? 6.8 : 10.5, h: 1.65,
