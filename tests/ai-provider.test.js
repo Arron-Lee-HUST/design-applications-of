@@ -75,3 +75,34 @@ test("rewrites one slide using a structured response", async () => {
   const result = await rewriteSlide(deck, 0, "Make it clearer", { AI_API_KEY: "test" }, fakeFetch);
   assert.deepEqual(result, { title: "New title", body: "New body", notes: "New notes" });
 });
+
+test("AI can select chart and metric layouts only when numbers appear in the brief", async () => {
+  const detailedInput = { ...input, brief: "Revenue was 12 in 2022 and 24 in 2024.", slideCount: 2 };
+  const fakeFetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ choices: [{ message: { content: JSON.stringify({ slides: [
+      { title: "Revenue trend", body: "Revenue increased across the period.", notes: "", layout: "chart", chartType: "bar", chartLabels: ["2022", "2024"], chartValues: [12, 24] },
+      { title: "Revenue milestone", body: "The reported value reached the period high.", notes: "", layout: "metric-highlight", metricValue: "24", metricLabel: "Revenue in 2024" }
+    ] }) } }] })
+  });
+  const result = await generateDeck(detailedInput, { AI_API_KEY: "test" }, fakeFetch);
+  assert.equal(result.slides[0].layout, "chart");
+  assert.deepEqual(result.slides[0].chartValues, [12, 24]);
+  assert.equal(result.slides[1].layout, "metric-highlight");
+  assert.equal(result.slides[1].metricValue, "24");
+});
+
+test("AI layout normalization falls back when a metric is unsupported by the brief", async () => {
+  const fakeFetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ choices: [{ message: { content: JSON.stringify({ slides: [
+      { title: "Growth", body: "The product grew.", notes: "", layout: "metric-highlight", metricValue: "99%", metricLabel: "Growth" },
+      { title: "Summary", body: "A concise summary.", notes: "" }
+    ] }) } }] })
+  });
+  const result = await generateDeck(input, { AI_API_KEY: "test" }, fakeFetch);
+  assert.equal(result.slides[0].layout, "title-body");
+  assert.equal(result.slides[0].metricValue, undefined);
+});
