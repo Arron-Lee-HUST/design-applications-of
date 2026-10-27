@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { renderDeck } = require("./packages/render-pptx");
 const { generateDeck } = require("./packages/ai-provider");
+const { reviewDeck } = require("./packages/design-workflow/quality");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
@@ -40,6 +41,15 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { status: "ok", service: "design-studio-export", pptx: true });
+  }
+  if (req.method === "POST" && url.pathname === "/api/quality/check") {
+    try {
+      const deck = await readJson(req);
+      return sendJson(res, 200, reviewDeck(deck));
+    } catch (error) {
+      if (res.destroyed) return;
+      return sendJson(res, error.statusCode || 400, { error: error.message });
+    }
   }
   if (req.method === "POST" && url.pathname === "/api/generate/deck") {
     try {
