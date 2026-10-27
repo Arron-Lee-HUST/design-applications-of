@@ -91,7 +91,7 @@ npm start
 npm test
 ```
 
-测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 输出 smoke test、AI Provider mock、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 输出 smoke test、AI Provider mock、HTTP API 集成、Pexels 素材适配器、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
 
 ## 项目结构
 
