@@ -36,7 +36,26 @@ test("workbench is served over HTTP", async () => {
   const response = await fetch(baseUrl);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /text\/html/);
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
+  assert.match(response.headers.get("content-security-policy"), /default-src 'self'/);
+  assert.match(response.headers.get("content-security-policy"), /https:\/\/images\.pexels\.com/);
   assert.match(await response.text(), /AI Design Studio|设计工作台|设计工作室/);
+});
+
+test("API responses include baseline security headers", async () => {
+  const response = await fetch(`${baseUrl}/api/health`);
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.equal(response.headers.get("permissions-policy"), "camera=(), microphone=(), geolocation=()");
+});
+
+test("404 responses retain baseline security headers", async () => {
+  const response = await fetch(`${baseUrl}/not-found`);
+  assert.equal(response.status, 404);
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
 });
 
 test("quality endpoint accepts a valid deck", async () => {
