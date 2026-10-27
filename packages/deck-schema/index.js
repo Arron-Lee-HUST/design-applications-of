@@ -52,6 +52,7 @@ function validateDeck(deck) {
       if (slide.imageAlt !== undefined && (typeof slide.imageAlt !== "string" || slide.imageAlt.length > 300)) {
         errors.push(prefix + ".imageAlt must be a string up to 300 characters");
       }
+      if (slide.imageSource !== undefined && (typeof slide.imageSource !== "string" || slide.imageSource.length > 500)) errors.push(prefix + ".imageSource must be a string up to 500 characters");
       if (slide.layout !== "title-body") errors.push(prefix + ".layout is unsupported");
     });
   }
