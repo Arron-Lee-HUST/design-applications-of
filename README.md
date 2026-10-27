@@ -17,7 +17,7 @@
 
 ## 快速开始
 
-需要 Node.js 18 或更高版本。
+需要 Node.js 20 或更高版本（推荐使用仍受支持的 LTS 版本）。
 
 ```bash
 npm install
