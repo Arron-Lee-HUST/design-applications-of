@@ -12,7 +12,7 @@
 6. 在同一浏览器中创建、切换、复制、重命名和删除多个项目；旧版单草稿会在首次启动时迁移。
 7. 运行确定性质量检查，或在配置 AI 后获取 AI 设计评审建议。
 8. 导出 HTML 幻灯片、响应式静态网页，或可继续编辑的 PowerPoint（PPTX）。
-9. 配置 OpenAI-compatible Chat Completions 服务后，根据项目简报生成完整页面大纲。
+9. 配置 OpenAI-compatible Chat Completions 服务后，根据项目简报生成完整页面大纲，并可选择章节分隔、指标和图表布局；数字布局必须能在简报中找到对应数字。
 10. 配置可选的 Pexels API Key 后，可按页面搜索在线图片，并将所选图片导入 Deck，同时保留摄影师与来源链接。
 
 ## 快速开始
@@ -92,7 +92,11 @@ npm start
 npm test
 ```
 
-测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 输出 smoke test、AI Provider mock、HTTP API 集成、Pexels 素材适配器、工作台脚本语法和项目管理控件检查、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 图表 smoke test、AI Provider mock、HTTP API 集成与限流、Pexels 素材适配器、速率限制器、工作台脚本语法和项目管理控件检查、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+
+## API 速率限制
+
+服务端按客户端 IP 使用内存固定窗口限流，默认每分钟普通 API 60 次、AI 生成/评审/改写 10 次。可设置 `RATE_LIMIT_WINDOW_MS`（默认 60000 毫秒）、`API_RATE_LIMIT_MAX`（默认 60）和 `AI_RATE_LIMIT_MAX`（默认 10）。超限返回 HTTP 429 和 `Retry-After`。该限流状态只存在于单个 Node 进程中，重启会清空；多实例部署应在反向代理或 API 网关实现共享限流，并配置认证。
 
 ## 项目结构
 
@@ -129,4 +133,4 @@ CI 会执行 `npm audit` 并在发现 High/Critical 级别漏洞时失败。当�
 
 ## 安全提示
 
-请阅读 [SECURITY.md](SECURITY.md)。不要在公共部署环境直接暴露未鉴权的生成和导出 API；生产环境还需要增加认证、速率限制、审计和部署级请求限制。
+请阅读 [SECURITY.md](SECURITY.md)。不要在公共部署环境直接暴露未鉴权的生成和导出 API。当前内存限流是基础保护，生产环境仍需认证、共享限流、审计和部署级请求限制。

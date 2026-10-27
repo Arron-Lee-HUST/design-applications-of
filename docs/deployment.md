@@ -26,7 +26,8 @@ The container sets `HOST=0.0.0.0` so the published port is reachable. Do not har
 
 ## Production checklist
 - Add authentication and authorization.
-- Add rate limits and request quotas for AI and export endpoints.
+- Configure `AI_RATE_LIMIT_MAX`, `API_RATE_LIMIT_MAX`, and `RATE_LIMIT_WINDOW_MS`; current process-local rate limits are not shared across instances.
+- Add authentication, shared rate limits and request quotas for AI and export endpoints.
 - Configure HTTPS and a restrictive origin/CSRF policy.
 - Keep the service behind a trusted reverse proxy or private network until authentication and rate limits are implemented.
 - The server sends baseline browser security headers and a Content Security Policy for the workbench, but these do not replace authentication or authorization.
