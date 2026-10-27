@@ -17,7 +17,7 @@
 
 ## 快速开始
 
-需要 Node.js 18 或更高版本。
+需要 Node.js 20 或更高版本（推荐使用仍受支持的 LTS 版本）。
 
 ```bash
 npm install
@@ -122,6 +122,10 @@ npm test
 - AI 评审提供建议，不是事实核验系统。
 - 图片搜索目前仅支持可选的 Pexels 服务；应用会保留摄影师和来源链接，但不会自动判定授权是否合法。多图库聚合、图表自动生成、通用网站路由和数据库表单仍未实现。
 - 需要在目标环境运行 `npm test`，并在 PowerPoint/LibreOffice 与主流浏览器中进行最终验收。
+
+## 依赖安全
+
+CI 会执行 `npm audit` 并在发现 High/Critical 级别漏洞时失败。当前通过 npm override 将 `pptxgenjs` 的 `image-size` 1.x 依赖替换为兼容的 `image-size-next@1.2.2`，以缓解其高危无限循环/拒绝服务问题；该替代包是社区维护的兼容分支，并非原项目官方发布。升级相关依赖时，应继续检查 PowerPoint 图片渲染和完整测试结果。
 
 ## 安全提示
 

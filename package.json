@@ -11,6 +11,9 @@
     "pptxgenjs": "^4.0.1"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
+  },
+  "overrides": {
+    "image-size": "npm:image-size-next@1.2.2"
   }
 }
