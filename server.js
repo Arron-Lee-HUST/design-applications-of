@@ -4,7 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { renderDeck } = require("./packages/render-pptx");
-const { generateDeck, reviewDeckWithAI } = require("./packages/ai-provider");
+const { generateDeck, reviewDeckWithAI, rewriteSlide } = require("./packages/ai-provider");
 const { reviewDeck } = require("./packages/design-workflow/quality");
 const { renderWebsite } = require("./packages/render-html");
 
@@ -70,6 +70,17 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       if (res.destroyed) return;
       return sendJson(res, error.statusCode || 400, { error: error.message });
+    }
+  }
+  if (req.method === "POST" && url.pathname === "/api/regenerate/slide") {
+    try {
+      const input = await readJson(req);
+      const slide = await rewriteSlide(input.deck, input.slideIndex, input.instruction);
+      return sendJson(res, 200, { slideIndex: input.slideIndex, slide });
+    } catch (error) {
+      if (res.destroyed) return;
+      const status = error.statusCode || (error.code === "AI_NOT_CONFIGURED" ? 503 : ["INVALID_DECK", "INVALID_SLIDE_INDEX", "INVALID_INSTRUCTION"].includes(error.code) ? 400 : ["AI_UPSTREAM_ERROR", "AI_INVALID_OUTPUT"].includes(error.code) ? 502 : 500);
+      return sendJson(res, status, { error: error.message, code: error.code || "INTERNAL_ERROR", details: error.details || undefined });
     }
   }
   if (req.method === "POST" && url.pathname === "/api/review/deck") {

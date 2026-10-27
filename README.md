@@ -67,6 +67,7 @@ npm start
 | GET | `/api/health` | 服务健康状态 |
 | POST | `/api/generate/deck` | 根据简报生成结构化 Deck（需配置 AI） |
 | POST | `/api/review/deck` | AI 设计评审（需配置 AI） |
+| POST | `/api/regenerate/slide` | 按修改要求重写单页（需配置 AI） |
 | POST | `/api/quality/check` | 确定性质量检查 |
 | POST | `/api/export/pptx` | 导出可编辑 PowerPoint |
 | POST | `/api/export/site` | 导出响应式静态网站 |

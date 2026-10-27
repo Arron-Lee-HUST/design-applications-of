@@ -175,4 +175,48 @@ async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
   return { model, findings, reviewedSlides: deck.slides.length, note: "AI 评审是建议，不是事实核验；请由作者确认后再修改。" };
 }
 
-module.exports = { generateDeck, reviewDeckWithAI, parseJsonContent };
+
+async function rewriteSlide(deck, slideIndex, instruction, env = process.env, fetchImpl = fetch) {
+  const validation = validateDeck(deck);
+  if (!validation.valid) throw Object.assign(new Error("Invalid deck: " + validation.errors.join("; ")), { code: "INVALID_DECK", details: validation.errors });
+  if (!Number.isInteger(slideIndex) || slideIndex < 0 || slideIndex >= deck.slides.length) throw Object.assign(new Error("页面索引无效"), { code: "INVALID_SLIDE_INDEX" });
+  const request = String(instruction || "").trim().slice(0, 1000);
+  if (!request) throw Object.assign(new Error("请填写本页修改要求"), { code: "INVALID_INSTRUCTION" });
+  const apiKey = env.AI_API_KEY;
+  if (!apiKey) throw Object.assign(new Error("尚未配置 AI_API_KEY。请在服务端环境变量中配置。"), { code: "AI_NOT_CONFIGURED" });
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const model = env.AI_MODEL || "gpt-4o-mini";
+  const current = deck.slides[slideIndex];
+  const neighbors = deck.slides.map((slide, index) => ({ slide: index + 1, title: slide.title })).filter(item => Math.abs(item.slide - (slideIndex + 1)) <= 1);
+  const prompt = "请只重写指定页面，保持整个演示文稿故事线连贯。不要编造数据、引文或事实。只返回 JSON：{\\"title\\":\\"...\\",\\"body\\":\\"...\\",\\"notes\\":\\"...\\"}。\\n" +
+    "演示文稿标题：" + deck.metadata.title + "\\n受众：" + deck.metadata.audience + "\\n简报：" + deck.metadata.brief + "\\n视觉方向：" + deck.design.direction +
+    "\\n相邻页面标题：" + JSON.stringify(neighbors) + "\\n当前页面：" + JSON.stringify({ title: current.title, body: current.body, notes: current.notes }) +
+    "\\n修改要求：" + request;
+  let response;
+  try {
+    response = await fetchImpl(baseUrl + "/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, temperature: 0.5, response_format: { type: "json_object" }, messages: [
+        { role: "system", content: "你是专业演示文稿编辑，只返回 JSON，不得伪造事实。" },
+        { role: "user", content: prompt }
+      ] }),
+      signal: AbortSignal.timeout(45000)
+    });
+  } catch (error) {
+    throw Object.assign(new Error("调用 AI 改写服务失败：" + (error.name === "TimeoutError" ? "请求超时" : error.message)), { code: "AI_UPSTREAM_ERROR" });
+  }
+  if (!response.ok) throw Object.assign(new Error("AI 服务返回 HTTP " + response.status), { code: "AI_UPSTREAM_ERROR", statusCode: 502 });
+  const payload = await response.json();
+  const parsed = parseJsonContent(payload?.choices?.[0]?.message?.content);
+  if (typeof parsed.title !== "string" || typeof parsed.body !== "string") throw Object.assign(new Error("AI 改写结果缺少 title/body"), { code: "AI_INVALID_OUTPUT" });
+  const result = {
+    title: parsed.title.slice(0, 300),
+    body: parsed.body.slice(0, 10000),
+    notes: typeof parsed.notes === "string" ? parsed.notes.slice(0, 10000) : current.notes || ""
+  };
+  if (!result.title.trim() || !result.body.trim()) throw Object.assign(new Error("AI 改写结果不能为空"), { code: "AI_INVALID_OUTPUT" });
+  return result;
+}
+
+module.exports = { generateDeck, reviewDeckWithAI, rewriteSlide, parseJsonContent };

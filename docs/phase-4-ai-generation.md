@@ -25,3 +25,6 @@ Provider compatibility varies: some OpenAI-compatible services ignore JSON mode 
 
 ## AI design review
 The editor also offers **AI 设计评审**, backed by `POST /api/review/deck`. It reviews narrative progression, repetition, readability, density, audience fit, and unsupported factual claims, returning at most 12 slide-specific suggestions. It does not silently rewrite the deck; the author decides which suggestions to apply. The review is advisory and cannot verify facts without source material.
+
+## Targeted slide rewrite
+Each slide outline now includes an **AI 改写本页** action. The author provides an instruction; the server sends only the relevant deck context and selected slide text to the configured provider, validates the returned title/body/notes, and returns the revision for review. Existing image assets and attribution stay attached to the slide. The action does not run unless the AI provider is configured.
