@@ -3,7 +3,7 @@
 const SUPPORTED_SCHEMA_VERSION = "1.0.0";
 const DIRECTIONS = new Set(["editorial", "modern", "data"]);
 const THEMES = new Set(["editorial", "dark", "analytical"]);
-const LAYOUTS = new Set(["title-body", "section-divider", "metric-highlight"]);
+const LAYOUTS = new Set(["title-body", "section-divider", "metric-highlight", "chart"]);
 
 function validateDeck(deck) {
   const errors = [];
@@ -58,6 +58,10 @@ function validateDeck(deck) {
       if (slide.metricValue !== undefined && (typeof slide.metricValue !== "string" || slide.metricValue.length > 80)) errors.push(prefix + ".metricValue must be a string up to 80 characters");
       if (slide.metricLabel !== undefined && (typeof slide.metricLabel !== "string" || slide.metricLabel.length > 120)) errors.push(prefix + ".metricLabel must be a string up to 120 characters");
       if (slide.layout === "metric-highlight" && (!String(slide.metricValue || "").trim() || !String(slide.metricLabel || "").trim())) errors.push(prefix + " metric-highlight layout requires metricValue and metricLabel");
+      if (slide.chartType !== undefined && !["bar", "line"].includes(slide.chartType)) errors.push(prefix + ".chartType must be bar or line");
+      if (slide.chartLabels !== undefined && (!Array.isArray(slide.chartLabels) || slide.chartLabels.length < 2 || slide.chartLabels.length > 8 || slide.chartLabels.some(label => typeof label !== "string" || !label.trim() || label.length > 40))) errors.push(prefix + ".chartLabels must contain 2-8 non-empty labels up to 40 characters");
+      if (slide.chartValues !== undefined && (!Array.isArray(slide.chartValues) || slide.chartValues.length < 2 || slide.chartValues.length > 8 || slide.chartValues.some(value => typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1000000000))) errors.push(prefix + ".chartValues must contain 2-8 finite numbers between 0 and 1,000,000,000");
+      if (slide.layout === "chart" && (!["bar", "line"].includes(slide.chartType) || !Array.isArray(slide.chartLabels) || !Array.isArray(slide.chartValues) || slide.chartLabels.length !== slide.chartValues.length || slide.chartLabels.length < 2 || slide.chartLabels.length > 8)) errors.push(prefix + " chart layout requires matching chartLabels and chartValues arrays (2-8 points) and a chartType");
     });
   }
   return { valid: errors.length === 0, errors };
