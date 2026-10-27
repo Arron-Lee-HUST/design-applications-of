@@ -40,3 +40,14 @@ test("embeds a slide image in the PPTX output", async () => {
   assert.ok(Buffer.isBuffer(output));
   assert.ok(output.length > 1000);
 });
+
+test("renders section-divider and metric-highlight layouts", async () => {
+  const input = deck();
+  input.slides[0].layout = "section-divider";
+  input.slides[1].layout = "metric-highlight";
+  input.slides[1].metricValue = "35%";
+  input.slides[1].metricLabel = "Conversion improvement";
+  const output = await renderDeck(input);
+  assert.ok(Buffer.isBuffer(output));
+  assert.ok(output.length > 1000);
+});
