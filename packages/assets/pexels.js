@@ -39,12 +39,18 @@ async function searchPexels(query, env = process.env, fetchImpl = fetch) {
 }
 
 async function importPexelsImage(input, fetchImpl = fetch) {
-  const imageUrl = new URL(String(input?.imageUrl || ""));
+  let imageUrl;
+  let pageUrl;
+  try {
+    imageUrl = new URL(String(input?.imageUrl || ""));
+    pageUrl = new URL(String(input?.pageUrl || ""));
+  } catch {
+    throw assetError("图片 URL 无效", "INVALID_ASSET_URL", 400);
+  }
   if (imageUrl.protocol !== "https:" || imageUrl.hostname !== "images.pexels.com" || imageUrl.username || imageUrl.password || imageUrl.port) {
     throw assetError("只允许导入 Pexels 官方图片 CDN 上的 HTTPS 图片", "INVALID_ASSET_URL", 400);
   }
-  const pageUrl = new URL(String(input?.pageUrl || ""));
-  if (pageUrl.protocol !== "https:" || pageUrl.hostname !== "www.pexels.com") {
+  if (pageUrl.protocol !== "https:" || pageUrl.hostname !== "www.pexels.com" || pageUrl.username || pageUrl.password || pageUrl.port) {
     throw assetError("图片来源链接必须指向 Pexels 官方页面", "INVALID_ASSET_SOURCE", 400);
   }
   let response;
