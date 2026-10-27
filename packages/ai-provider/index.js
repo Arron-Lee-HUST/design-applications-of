@@ -9,6 +9,32 @@ function parseJsonContent(content) {
   catch { throw new Error("模型未返回有效 JSON，请重试或更换支持 JSON 输出的模型"); }
 }
 
+function normalizeSlideLayout(slide, evidenceText) {
+  const layout = ["title-body", "section-divider", "metric-highlight", "chart"].includes(slide?.layout) ? slide.layout : "title-body";
+  if (layout === "section-divider") return { layout };
+  const evidenceNumbers = new Set((String(evidenceText || "").match(/\d+(?:\.\d+)?/g) || []));
+  if (layout === "metric-highlight") {
+    const metricValue = String(slide.metricValue || "").trim().slice(0, 80);
+    const metricLabel = String(slide.metricLabel || "").trim().slice(0, 120);
+    const numbers = metricValue.match(/\d+(?:\.\d+)?/g) || [];
+    if (metricValue && metricLabel && numbers.length && numbers.every(value => evidenceNumbers.has(value))) {
+      return { layout, metricValue, metricLabel };
+    }
+    return { layout: "title-body" };
+  }
+  if (layout === "chart") {
+    const chartType = ["bar", "line"].includes(slide.chartType) ? slide.chartType : null;
+    const chartLabels = Array.isArray(slide.chartLabels) ? slide.chartLabels.slice(0, 8).map(value => String(value || "").trim().slice(0, 40)) : [];
+    const chartValues = Array.isArray(slide.chartValues) ? slide.chartValues.slice(0, 8).map(Number) : [];
+    const supported = chartValues.every(value => Number.isFinite(value) && value >= 0 && value <= 1000000000 && evidenceNumbers.has(String(value)));
+    if (chartType && chartLabels.length >= 2 && chartLabels.length === chartValues.length && chartLabels.every(Boolean) && supported) {
+      return { layout, chartType, chartLabels, chartValues };
+    }
+    return { layout: "title-body" };
+  }
+  return { layout: "title-body" };
+}
+
 async function generateDeck(input, env = process.env, fetchImpl = fetch) {
   const apiKey = env.AI_API_KEY;
   if (!apiKey) {
@@ -34,8 +60,8 @@ async function generateDeck(input, env = process.env, fetchImpl = fetch) {
   const prompt = [
     "你是一名资深演示文稿叙事与视觉设计师。根据简报生成高质量中文演示文稿内容。",
     "只返回一个 JSON 对象，不要 Markdown，不要代码围栏，不要解释。",
-    "JSON 结构必须为 {\"slides\":[{\"title\":\"...\",\"body\":\"...\",\"notes\":\"...\"}]}。",
-    "严格生成 " + slideCount + " 页。每页只表达一个核心观点，标题应有信息量，正文具体且简洁，备注可为空字符串。",
+    'JSON 结构为 {"slides":[{"title":"...","body":"...","notes":"...","layout":"title-body|section-divider|metric-highlight|chart","metricValue":"...","metricLabel":"...","chartType":"bar|line","chartLabels":["..."],"chartValues":[12,24]}]}，布局字段按需提供。',
+    "严格生成 " + slideCount + " 页。每页只表达一个核心观点，标题应有信息量，正文具体且简洁，备注可为空字符串。根据内容选择布局：章节转场可用 section-divider；只有当简报中明确出现某个数字时才可用 metric-highlight；只有当简报提供了明确数字序列时才可用 chart。绝不推测或编造指标/图表数据；若证据不足，使用 title-body。",
     "不要编造统计数据、引用、研究结论或事实；简报缺少证据时使用定性表达。",
     "项目标题：" + title,
     "目标受众：" + (audience || "一般商务受众"),
@@ -97,7 +123,7 @@ async function generateDeck(input, env = process.env, fetchImpl = fetch) {
     slides: parsed.slides.map((slide, index) => ({
       id: "slide-" + (index + 1),
       order: index + 1,
-      layout: "title-body",
+      ...normalizeSlideLayout(slide, title + " " + brief),
       title: typeof slide.title === "string" ? slide.title.slice(0, 300) : "",
       body: typeof slide.body === "string" ? slide.body.slice(0, 10000) : "",
       notes: typeof slide.notes === "string" ? slide.notes.slice(0, 10000) : ""
