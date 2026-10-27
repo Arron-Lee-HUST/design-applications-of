@@ -67,3 +67,14 @@ test("accepts section-divider and metric-highlight layouts with bounded metric f
   delete deck.slides[0].metricValue;
   assert.ok(validateDeck(deck).errors.some(error => error.includes("requires metricValue and metricLabel")));
 });
+
+test("validates chart layout labels, values, and chart type", () => {
+  const deck = validDeck();
+  deck.slides[0].layout = "chart";
+  deck.slides[0].chartType = "bar";
+  deck.slides[0].chartLabels = ["2022", "2023", "2024"];
+  deck.slides[0].chartValues = [12, 18, 24];
+  assert.equal(validateDeck(deck).valid, true);
+  deck.slides[0].chartValues = [12, -1, 24];
+  assert.ok(validateDeck(deck).errors.some(error => error.includes("chartValues")));
+});
