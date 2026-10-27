@@ -12,5 +12,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "image-size": "npm:image-size-next@1.2.2"
   }
 }
