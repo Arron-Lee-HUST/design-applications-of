@@ -4,11 +4,14 @@ const { validateDeck } = require("../deck-schema");
 
 function reviewDeck(deck) {
   const validation = validateDeck(deck);
-  if (!validation.valid) {
+  if (!deck || typeof deck !== "object" || Array.isArray(deck) || !Array.isArray(deck.slides)) {
     return { score: 0, status: "blocked", summary: "文档结构未通过校验，请先修复数据问题。",
       findings: validation.errors.map(message => ({ severity: "error", code: "SCHEMA_INVALID", source: "rule", message, recommendation: "按数据校验错误修复字段后，再重新运行质量检查。" })) };
   }
-  const findings = [];
+  const findings = validation.errors.map(message => ({
+    severity: "error", code: "SCHEMA_INVALID", source: "rule", message,
+    recommendation: "修复对应字段后重新运行检查；若问题指向某一页，请在大纲中检查该页布局和必填数据。"
+  }));
   const add = (severity, code, message, slideIndex, recommendation) => {
     const item = { severity, code, source: "rule", message, recommendation };
     if (Number.isInteger(slideIndex)) item.slide = slideIndex + 1;
@@ -17,10 +20,12 @@ function reviewDeck(deck) {
   const slides = deck.slides;
   if (slides.length < 3) add("warning", "SHORT_DECK", "页面少于 3 页；请确认是否覆盖背景、核心方案与结论。", undefined, "检查是否需要补充背景、核心内容和结论；极简演示可忽略此提示。");
   if (slides.length > 20) add("warning", "LONG_DECK", "页面超过 20 页；请检查叙事节奏和是否可以精简。", undefined, "合并重复观点，并确认每一页都推动故事线向前。");
-  const seenTitles = new Map();
-  const seenBodies = new Map();
+  const seenTitles = new Map(), seenBodies = new Map();
   slides.forEach((slide, index) => {
-    const title = slide.title.trim(), body = slide.body.trim();
+    if (!slide || typeof slide !== "object" || Array.isArray(slide)) return;
+    const title = typeof slide.title === "string" ? slide.title.trim() : "";
+    const body = typeof slide.body === "string" ? slide.body.trim() : "";
+    const notes = typeof slide.notes === "string" ? slide.notes : "";
     if (!title) add("error", "EMPTY_TITLE", "页面标题为空。", index, "补充一句表达本页结论的标题；避免只写“介绍”或“其他”。");
     if (!body) add("warning", "EMPTY_BODY", "页面正文为空。", index, "添加支持标题的关键证据、解释或下一步行动；若是纯视觉页，可保留并人工确认。");
     if (title.length > 70) add("warning", "LONG_TITLE", "标题超过 70 个字符，可能影响视觉层级。", index, "将标题改为一个明确观点，把背景和限定条件移到正文或讲者备注。");
@@ -47,7 +52,7 @@ function reviewDeck(deck) {
       add("warning", "IMAGE_ALT_MISSING", "页面图片缺少替代文本，不利于无障碍阅读。", index, "填写简洁的图片说明，描述图片对理解本页内容的作用。");
     if (slide.imageData && !String(slide.imageSource || "").trim())
       add("info", "IMAGE_SOURCE_MISSING", "页面图片未记录来源或许可信息。", index, "补充原始来源链接、摄影师和许可说明，交付前确认使用权限。");
-    if (!slide.notes.trim()) add("info", "NO_SPEAKER_NOTES", "没有讲者备注（可选）。", index, "为关键数据、案例来源或需要口头解释的内容添加备注。");
+    if (!notes.trim()) add("info", "NO_SPEAKER_NOTES", "没有讲者备注（可选）。", index, "为关键数据、案例来源或需要口头解释的内容添加备注。");
   });
   const errors = findings.filter(item => item.severity === "error").length;
   const warnings = findings.filter(item => item.severity === "warning").length;
