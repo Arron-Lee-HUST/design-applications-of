@@ -8,6 +8,7 @@ const { generateDeck, reviewDeckWithAI, rewriteSlide } = require("./packages/ai-
 const { reviewDeck } = require("./packages/design-workflow/quality");
 const { renderWebsite } = require("./packages/render-html");
 const { searchPexels, importPexelsImage } = require("./packages/assets/pexels");
+const { createRateLimiter, positiveInteger } = require("./packages/security/rate-limit");
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "127.0.0.1";
@@ -15,6 +16,12 @@ const ROOT = __dirname;
 const DEFAULT_MAX_BODY_BYTES = 10 * 1024 * 1024;
 const configuredBodyLimit = Number(process.env.MAX_BODY_BYTES || DEFAULT_MAX_BODY_BYTES);
 const MAX_BODY_BYTES = Number.isSafeInteger(configuredBodyLimit) && configuredBodyLimit > 0 ? configuredBodyLimit : DEFAULT_MAX_BODY_BYTES;
+const RATE_LIMIT_WINDOW_MS = positiveInteger(process.env.RATE_LIMIT_WINDOW_MS, 60_000);
+const API_RATE_LIMIT_MAX = positiveInteger(process.env.API_RATE_LIMIT_MAX, 60);
+const AI_RATE_LIMIT_MAX = positiveInteger(process.env.AI_RATE_LIMIT_MAX, 10);
+const apiRateLimiter = createRateLimiter({ limit: API_RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS });
+const aiRateLimiter = createRateLimiter({ limit: AI_RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS });
+const AI_ENDPOINTS = new Set(["/api/generate/deck", "/api/review/deck", "/api/regenerate/slide"]);
 
 function sendJson(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -53,6 +60,15 @@ const server = http.createServer(async (req, res) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   const url = new URL(req.url, "http://localhost");
+  if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health") {
+    const limiter = AI_ENDPOINTS.has(url.pathname) ? aiRateLimiter : apiRateLimiter;
+    const result = limiter.check(req.socket.remoteAddress || "unknown");
+    if (!result.allowed) {
+      const retryAfterSeconds = Math.max(1, Math.ceil(result.retryAfterMs / 1000));
+      res.setHeader("Retry-After", String(retryAfterSeconds));
+      return sendJson(res, 429, { error: "请求过于频繁，请稍后重试", code: "RATE_LIMITED", retryAfterSeconds });
+    }
+  }
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { status: "ok", service: "design-studio-export", pptx: true });
   }
@@ -171,4 +187,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { server, readJson };
+module.exports = { server, readJson, rateLimiters: { api: apiRateLimiter, ai: aiRateLimiter } };
