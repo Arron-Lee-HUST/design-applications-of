@@ -147,7 +147,7 @@ async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: "你是严谨的演示文稿编辑。只返回 JSON，不得编造事实或来源。" },
-          { role: "user", content: "评审以下演示文稿。检查故事线、重复、可读性、信息密度、受众匹配和缺少证据的事实陈述。只指出可操作的问题，不要把主观偏好说成错误。返回 JSON：{\\"findings\\":[{\\"slide\\":1,\\"severity\\":\\"error|warning|info\\",\\"issue\\":\\"问题\\",\\"suggestion\\":\\"具体改进建议\\"}]}。最多 12 条；没有问题时返回空数组。\\n" + JSON.stringify(compact) }
+          { role: "user", content: '评审以下演示文稿。检查故事线、重复、可读性、信息密度、受众匹配和缺少证据的事实陈述。只指出可操作的问题，不要把主观偏好说成错误。返回 JSON：{"findings":[{"slide":1,"severity":"error|warning|info","issue":"问题","suggestion":"具体改进建议"}]}。最多 12 条；没有问题时返回空数组。\n' + JSON.stringify(compact) }
         ]
       }),
       signal: AbortSignal.timeout(45000)
