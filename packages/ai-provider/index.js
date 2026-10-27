@@ -29,7 +29,7 @@ async function generateDeck(input, env = process.env, fetchImpl = fetch) {
     throw error;
   }
 
-  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(new RegExp("/+$"), "");
   const model = env.AI_MODEL || "gpt-4o-mini";
   const prompt = [
     "你是一名资深演示文稿叙事与视觉设计师。根据简报生成高质量中文演示文稿内容。",
