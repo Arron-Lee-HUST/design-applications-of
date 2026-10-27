@@ -125,6 +125,10 @@
           "imageAlt": {
             "type": "string",
             "maxLength": 300
+          },
+          "imageSource": {
+            "type": "string",
+            "maxLength": 500
           }
         }
       }
