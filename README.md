@@ -92,7 +92,11 @@ npm start
 npm test
 ```
 
-测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 输出 smoke test、AI Provider mock、HTTP API 集成、Pexels 素材适配器、工作台脚本语法和项目管理控件检查、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 图表 smoke test、AI Provider mock、HTTP API 集成与限流、Pexels 素材适配器、速率限制器、工作台脚本语法和项目管理控件检查、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+
+## API 速率限制
+
+服务端按客户端 IP 使用内存固定窗口限流，默认每分钟普通 API 60 次、AI 生成/评审/改写 10 次。可设置 `RATE_LIMIT_WINDOW_MS`（默认 60000 毫秒）、`API_RATE_LIMIT_MAX`（默认 60）和 `AI_RATE_LIMIT_MAX`（默认 10）。超限返回 HTTP 429 和 `Retry-After`。该限流状态只存在于单个 Node 进程中，重启会清空；多实例部署应在反向代理或 API 网关实现共享限流，并配置认证。
 
 ## 项目结构
 
@@ -129,4 +133,4 @@ CI 会执行 `npm audit` 并在发现 High/Critical 级别漏洞时失败。当�
 
 ## 安全提示
 
-请阅读 [SECURITY.md](SECURITY.md)。不要在公共部署环境直接暴露未鉴权的生成和导出 API；生产环境还需要增加认证、速率限制、审计和部署级请求限制。
+请阅读 [SECURITY.md](SECURITY.md)。不要在公共部署环境直接暴露未鉴权的生成和导出 API。当前内存限流是基础保护，生产环境仍需认证、共享限流、审计和部署级请求限制。

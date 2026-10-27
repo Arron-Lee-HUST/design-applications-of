@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { before, after } = require("node:test");
-const { server } = require("../server");
+const { server, rateLimiters, rateLimits } = require("../server");
 
 const deck = {
   schemaVersion: "1.0.0",
@@ -91,4 +91,25 @@ test("AI rewrite reports an actionable configuration error when no key is set", 
   assert.equal(response.status, 503);
   const result = await response.json();
   assert.equal(result.code, "AI_NOT_CONFIGURED");
+});
+
+test("API middleware returns 429 and Retry-After after the per-IP quota", async () => {
+  rateLimiters.api.clear();
+  for (let i = 0; i < rateLimits.api; i += 1) {
+    const response = await fetch(`${baseUrl}/api/quality/check`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(deck)
+    });
+    assert.equal(response.status, 200);
+    await response.arrayBuffer();
+  }
+  const blocked = await fetch(`${baseUrl}/api/quality/check`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(deck)
+  });
+  assert.equal(blocked.status, 429);
+  assert.ok(Number(blocked.headers.get("retry-after")) >= 1);
+  assert.equal((await blocked.json()).code, "RATE_LIMITED");
 });
