@@ -82,18 +82,53 @@ function renderDeck(deck) {
       });
       if (item.imageSource) slide.addText("Image source: " + item.imageSource, { x: 8.0, y: 5.9, w: 4.3, h: 0.35, fontFace: "Aptos", fontSize: 7, color: theme.muted, margin: 0, fit: "shrink" });
     }
-    slide.addText(item.title, {
-      x: 0.75, y: 1.55, w: hasImage ? 6.8 : 10.5, h: 1.65,
-      fontFace: theme.font, fontSize: 30, bold: true,
-      color: theme.ink, margin: 0, breakLine: false,
-      valign: "mid", fit: "shrink"
-    });
-    slide.addText(item.body, {
-      x: 0.78, y: 3.55, w: hasImage ? 6.5 : 9.4, h: 1.8,
-      fontFace: "Aptos", fontSize: 18, color: theme.muted,
-      margin: 0, breakLine: false, valign: "top", fit: "shrink",
-      paraSpaceAfterPt: 8
-    });
+    if (item.layout === "section-divider") {
+      slide.addText(item.title, {
+        x: 0.75, y: 2.05, w: hasImage ? 6.8 : 10.5, h: 1.5,
+        fontFace: theme.font, fontSize: 38, bold: true,
+        color: theme.ink, margin: 0, breakLine: false,
+        valign: "mid", fit: "shrink"
+      });
+      if (item.body) slide.addText(item.body, {
+        x: 0.78, y: 4.0, w: hasImage ? 6.5 : 9.4, h: 1.15,
+        fontFace: "Aptos", fontSize: 18, color: theme.muted,
+        margin: 0, breakLine: false, valign: "top", fit: "shrink"
+      });
+    } else if (item.layout === "metric-highlight") {
+      slide.addText(item.title, {
+        x: 0.75, y: 1.15, w: hasImage ? 6.8 : 10.5, h: 0.85,
+        fontFace: theme.font, fontSize: 24, bold: true,
+        color: theme.ink, margin: 0, breakLine: false, fit: "shrink"
+      });
+      slide.addText(item.metricValue, {
+        x: 0.78, y: 2.25, w: hasImage ? 6.5 : 9.4, h: 1.45,
+        fontFace: theme.font, fontSize: 46, bold: true,
+        color: theme.accent, margin: 0, breakLine: false, fit: "shrink"
+      });
+      slide.addText(item.metricLabel, {
+        x: 0.78, y: 3.85, w: hasImage ? 6.5 : 9.4, h: 0.75,
+        fontFace: "Aptos", fontSize: 18, bold: true, color: theme.ink,
+        margin: 0, breakLine: false, fit: "shrink"
+      });
+      if (item.body) slide.addText(item.body, {
+        x: 0.78, y: 4.75, w: hasImage ? 6.5 : 9.4, h: 1.0,
+        fontFace: "Aptos", fontSize: 14, color: theme.muted,
+        margin: 0, breakLine: false, valign: "top", fit: "shrink"
+      });
+    } else {
+      slide.addText(item.title, {
+        x: 0.75, y: 1.55, w: hasImage ? 6.8 : 10.5, h: 1.65,
+        fontFace: theme.font, fontSize: 30, bold: true,
+        color: theme.ink, margin: 0, breakLine: false,
+        valign: "mid", fit: "shrink"
+      });
+      slide.addText(item.body, {
+        x: 0.78, y: 3.55, w: hasImage ? 6.5 : 9.4, h: 1.8,
+        fontFace: "Aptos", fontSize: 18, color: theme.muted,
+        margin: 0, breakLine: false, valign: "top", fit: "shrink",
+        paraSpaceAfterPt: 8
+      });
+    }
     slide.addText(String(index + 1).padStart(2, "0") + " / " + String(deck.slides.length).padStart(2, "0"), {
       x: 10.8, y: 6.85, w: 1.6, h: 0.25,
       fontFace: "Aptos", fontSize: 9, color: theme.muted,
