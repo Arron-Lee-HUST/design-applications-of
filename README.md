@@ -72,7 +72,7 @@ npm start
 | POST | `/api/export/pptx` | 导出可编辑 PowerPoint |
 | POST | `/api/export/site` | 导出响应式静态网站 |
 
-导出和生成接口接收 JSON 请求体。服务端对 Deck 进行校验；请求体上限为 2 MB。
+导出和生成接口接收 JSON 请求体。服务端对 Deck 进行校验；默认请求体上限为 10 MB，可通过 `MAX_BODY_BYTES` 环境变量调整（单位：字节）。超限请求会被完整读取并返回 HTTP 413，避免服务端主动中断连接。
 
 ## 测试
 
