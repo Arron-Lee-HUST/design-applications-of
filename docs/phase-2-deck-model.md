@@ -21,10 +21,10 @@ npm test
 ```
 
 ## Current limits
-The browser editor supports `title-body`, `section-divider`, and `metric-highlight` layouts. Metric slides require both `metricValue` and `metricLabel`. The import path intentionally rejects unknown schema versions rather than guessing how to migrate them. The JSON Schema file is the interoperability contract; the JavaScript validator provides the zero-dependency runtime checks used in Node tests.
+The browser editor supports `title-body`, `section-divider`, `metric-highlight`, and `chart` layouts. Metric slides require `metricValue` and `metricLabel`; chart slides require `chartType`, `chartLabels`, and `chartValues` (2–8 matching points). The import path intentionally rejects unknown schema versions rather than guessing how to migrate them. The JSON Schema file is the interoperability contract; the JavaScript validator provides the zero-dependency runtime checks used in Node tests.
 
 ## Next
 1. Use the schema as the single source of truth for preview and export.
 2. Add explicit schema migrations when a future version changes the document format.
-3. Add more structured data visualizations and chart rendering.
+3. Add multi-series chart data, richer chart options, and schema migrations as needed.
 4. Add explicit schema migrations when a future version changes the document format.
