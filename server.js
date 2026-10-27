@@ -187,4 +187,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { server, readJson, rateLimiters: { api: apiRateLimiter, ai: aiRateLimiter } };
+module.exports = { server, readJson, rateLimiters: { api: apiRateLimiter, ai: aiRateLimiter }, rateLimits: { api: API_RATE_LIMIT_MAX, ai: AI_RATE_LIMIT_MAX } };
