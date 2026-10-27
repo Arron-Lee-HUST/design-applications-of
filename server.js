@@ -10,27 +10,34 @@ const { renderWebsite } = require("./packages/render-html");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
-const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const DEFAULT_MAX_BODY_BYTES = 10 * 1024 * 1024;
+const configuredBodyLimit = Number(process.env.MAX_BODY_BYTES || DEFAULT_MAX_BODY_BYTES);
+const MAX_BODY_BYTES = Number.isSafeInteger(configuredBodyLimit) && configuredBodyLimit > 0 ? configuredBodyLimit : DEFAULT_MAX_BODY_BYTES;
 
 function sendJson(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
   res.end(JSON.stringify(payload));
 }
 
-function readJson(req) {
+function readJson(req, maxBytes = MAX_BODY_BYTES) {
   return new Promise((resolve, reject) => {
     let size = 0;
+    let tooLarge = false;
     const chunks = [];
     req.on("data", chunk => {
       size += chunk.length;
-      if (size > MAX_BODY_BYTES) {
-        reject(Object.assign(new Error("请求内容超过 2 MB 限制"), { statusCode: 413 }));
-        req.destroy();
+      if (size > maxBytes) {
+        tooLarge = true;
+        chunks.length = 0;
         return;
       }
-      chunks.push(chunk);
+      if (!tooLarge) chunks.push(chunk);
     });
     req.on("end", () => {
+      if (tooLarge) {
+        reject(Object.assign(new Error("请求内容超过 " + Math.ceil(maxBytes / (1024 * 1024)) + " MB 限制"), { statusCode: 413 }));
+        return;
+      }
       try { resolve(JSON.parse(Buffer.concat(chunks).toString("utf8"))); }
       catch { reject(Object.assign(new Error("请求体必须是有效 JSON"), { statusCode: 400 })); }
     });

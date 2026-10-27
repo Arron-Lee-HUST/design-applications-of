@@ -29,7 +29,7 @@ async function generateDeck(input, env = process.env, fetchImpl = fetch) {
     throw error;
   }
 
-  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(new RegExp("/+$"), "");
   const model = env.AI_MODEL || "gpt-4o-mini";
   const prompt = [
     "你是一名资深演示文稿叙事与视觉设计师。根据简报生成高质量中文演示文稿内容。",
@@ -127,7 +127,7 @@ async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
     error.code = "AI_NOT_CONFIGURED";
     throw error;
   }
-  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(new RegExp("/+$"), "");
   const model = env.AI_MODEL || "gpt-4o-mini";
   const compact = {
     title: deck.metadata.title,
@@ -147,7 +147,7 @@ async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: "你是严谨的演示文稿编辑。只返回 JSON，不得编造事实或来源。" },
-          { role: "user", content: "评审以下演示文稿。检查故事线、重复、可读性、信息密度、受众匹配和缺少证据的事实陈述。只指出可操作的问题，不要把主观偏好说成错误。返回 JSON：{\\"findings\\":[{\\"slide\\":1,\\"severity\\":\\"error|warning|info\\",\\"issue\\":\\"问题\\",\\"suggestion\\":\\"具体改进建议\\"}]}。最多 12 条；没有问题时返回空数组。\\n" + JSON.stringify(compact) }
+          { role: "user", content: '评审以下演示文稿。检查故事线、重复、可读性、信息密度、受众匹配和缺少证据的事实陈述。只指出可操作的问题，不要把主观偏好说成错误。返回 JSON：{"findings":[{"slide":1,"severity":"error|warning|info","issue":"问题","suggestion":"具体改进建议"}]}。最多 12 条；没有问题时返回空数组。\n' + JSON.stringify(compact) }
         ]
       }),
       signal: AbortSignal.timeout(45000)
@@ -184,11 +184,11 @@ async function rewriteSlide(deck, slideIndex, instruction, env = process.env, fe
   if (!request) throw Object.assign(new Error("请填写本页修改要求"), { code: "INVALID_INSTRUCTION" });
   const apiKey = env.AI_API_KEY;
   if (!apiKey) throw Object.assign(new Error("尚未配置 AI_API_KEY。请在服务端环境变量中配置。"), { code: "AI_NOT_CONFIGURED" });
-  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(new RegExp("/+$"), "");
   const model = env.AI_MODEL || "gpt-4o-mini";
   const current = deck.slides[slideIndex];
   const neighbors = deck.slides.map((slide, index) => ({ slide: index + 1, title: slide.title })).filter(item => Math.abs(item.slide - (slideIndex + 1)) <= 1);
-  const prompt = "请只重写指定页面，保持整个演示文稿故事线连贯。不要编造数据、引文或事实。只返回 JSON：{\\"title\\":\\"...\\",\\"body\\":\\"...\\",\\"notes\\":\\"...\\"}。\\n" +
+  const prompt = "请只重写指定页面，保持整个演示文稿故事线连贯。不要编造数据、引文或事实。只返回 JSON：" + JSON.stringify({ title: "...", body: "...", notes: "..." }) + "。\n" +
     "演示文稿标题：" + deck.metadata.title + "\\n受众：" + deck.metadata.audience + "\\n简报：" + deck.metadata.brief + "\\n视觉方向：" + deck.design.direction +
     "\\n相邻页面标题：" + JSON.stringify(neighbors) + "\\n当前页面：" + JSON.stringify({ title: current.title, body: current.body, notes: current.notes }) +
     "\\n修改要求：" + request;
