@@ -47,7 +47,7 @@ test("quality endpoint accepts a valid deck", async () => {
   });
   assert.equal(response.status, 200);
   const result = await response.json();
-  assert.ok(Array.isArray(result.issues));
+  assert.ok(Array.isArray(result.findings));
 });
 
 test("website export returns a standalone HTML document", async () => {
