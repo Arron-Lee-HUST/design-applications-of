@@ -12,6 +12,7 @@
 6. 运行确定性质量检查，或在配置 AI 后获取 AI 设计评审建议。
 7. 导出 HTML 幻灯片、响应式静态网页，或可继续编辑的 PowerPoint（PPTX）。
 8. 配置 OpenAI-compatible Chat Completions 服务后，根据项目简报生成完整页面大纲。
+9. 配置可选的 Pexels API Key 后，可按页面搜索在线图片，并将所选图片导入 Deck，同时保留摄影师与来源链接。
 
 ## 快速开始
 
@@ -49,6 +50,14 @@ npm start
 
 如果使用本地部署的 OpenAI-compatible 模型，将 `AI_BASE_URL` 指向本地服务的 API 根地址，并设置该服务支持的模型名称。服务需要支持 `POST /chat/completions` 和 JSON object 输出模式。兼容实现存在差异，若服务不支持 `response_format: { type: "json_object" }`，需要为该服务增加适配。
 
+### 启用在线图片搜索（可选）
+
+1. 在 Pexels 开发者账户申请 API Key。
+2. 在服务端环境设置 `PEXELS_API_KEY`，然后重启服务；不要将 Key 放进浏览器代码或提交到 Git。
+3. 在任一页面的“搜索在线图片（Pexels）”输入关键词，选择结果后导入图片。
+
+搜索和导入由服务端代理完成。只允许导入 Pexels 图片 CDN 上的 HTTPS 图片，限制为 JPEG/PNG/WebP 且单张不超过 500 KB。导入时会保存替代文本、摄影师署名和 Pexels 来源页；使用者仍需遵守素材许可并自行确认具体用途是否合规。没有配置 Key 时，现有手动上传功能仍可使用。
+
 **不要将真实 API Key 写入前端、提交到 Git、放进公开的 `.env.example` 或浏览器 localStorage。** 部署时请使用平台 Secret/Environment 配置。
 
 ## 导出说明
@@ -58,7 +67,7 @@ npm start
 - **导出 PPTX**：生成包含可编辑文本框和矢量图形的 PowerPoint，不是幻灯片截图。
 - **导出/导入 JSON**：用于备份、迁移或作为后续生成流程的结构化输入。
 
-当前 PPTX/网页渲染支持 `title-body` 布局和三种视觉方向；本地图片上传已支持 PNG/JPEG/WebP，并可填写替代文本与来源/许可说明；自动图片搜索、交互式图表和更丰富的布局仍需继续开发。
+当前 PPTX/网页渲染支持 `title-body` 布局和三种视觉方向；本地图片上传已支持 PNG/JPEG/WebP，并可填写替代文本与来源/许可说明；自动图片搜索现已支持 Pexels（需自行配置 API Key）；多图库聚合、交互式图表和更丰富的布局仍需继续开发。
 
 ## HTTP API
 
@@ -67,7 +76,7 @@ npm start
 | GET | `/api/health` | 服务健康状态 |
 | POST | `/api/generate/deck` | 根据简报生成结构化 Deck（需配置 AI） |
 | POST | `/api/review/deck` | AI 设计评审（需配置 AI） |
-| POST | `/api/regenerate/slide` | 按修改要求重写单页（需配置 AI） |
+| POST | `/api/regenerate/slide` | 按修改要求重写单页（需配置 AI） |\n| GET | `/api/assets/search?q=...` | 搜索 Pexels 图片（需配置 `PEXELS_API_KEY`） |\n| POST | `/api/assets/import` | 下载并导入受限格式的 Pexels 图片 |
 | POST | `/api/quality/check` | 确定性质量检查 |
 | POST | `/api/export/pptx` | 导出可编辑 PowerPoint |
 | POST | `/api/export/site` | 导出响应式静态网站 |
