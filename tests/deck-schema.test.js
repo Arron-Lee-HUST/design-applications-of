@@ -45,3 +45,13 @@ test("handles non-object input without throwing", () => {
   assert.equal(validateDeck(null).valid, false);
   assert.equal(validateDeck("not a deck").valid, false);
 });
+
+test("accepts bounded embedded image data and rejects remote image URLs", () => {
+  const deck = validDeck();
+  deck.slides[0].imageData = "data:image/png;base64,AAAA";
+  deck.slides[0].imageAlt = "Diagram";
+  deck.slides[0].imageSource = "Author / CC BY 4.0";
+  assert.equal(validateDeck(deck).valid, true);
+  deck.slides[0].imageData = "https://example.com/image.png";
+  assert.equal(validateDeck(deck).valid, false);
+});

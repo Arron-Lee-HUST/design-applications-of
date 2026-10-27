@@ -5,29 +5,74 @@
   "description": "Portable, versioned source-of-truth format for presentation content.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "metadata", "design", "slides"],
+  "required": [
+    "schemaVersion",
+    "metadata",
+    "design",
+    "slides"
+  ],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
     "metadata": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "audience", "brief", "tone"],
+      "required": [
+        "title",
+        "audience",
+        "brief",
+        "tone"
+      ],
       "properties": {
-        "title": { "type": "string", "maxLength": 300 },
-        "audience": { "type": "string", "maxLength": 500 },
-        "brief": { "type": "string", "maxLength": 10000 },
-        "tone": { "type": "string", "maxLength": 200 },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "title": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "audience": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "brief": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "tone": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
     "design": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["direction", "aspectRatio", "theme"],
+      "required": [
+        "direction",
+        "aspectRatio",
+        "theme"
+      ],
       "properties": {
-        "direction": { "enum": ["editorial", "modern", "data"] },
-        "aspectRatio": { "const": "16:9" },
-        "theme": { "enum": ["editorial", "dark", "analytical"] }
+        "direction": {
+          "enum": [
+            "editorial",
+            "modern",
+            "data"
+          ]
+        },
+        "aspectRatio": {
+          "const": "16:9"
+        },
+        "theme": {
+          "enum": [
+            "editorial",
+            "dark",
+            "analytical"
+          ]
+        }
       }
     },
     "slides": {
@@ -37,14 +82,54 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "order", "layout", "title", "body", "notes"],
+        "required": [
+          "id",
+          "order",
+          "layout",
+          "title",
+          "body",
+          "notes"
+        ],
         "properties": {
-          "id": { "type": "string", "minLength": 1, "maxLength": 100 },
-          "order": { "type": "integer", "minimum": 1 },
-          "layout": { "enum": ["title-body"] },
-          "title": { "type": "string", "maxLength": 300 },
-          "body": { "type": "string", "maxLength": 10000 },
-          "notes": { "type": "string", "maxLength": 10000 }
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "layout": {
+            "enum": [
+              "title-body"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "imageData": {
+            "type": "string",
+            "maxLength": 700000,
+            "pattern": "^data:image/(png|jpeg|webp);base64,"
+          },
+          "imageAlt": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "imageSource": {
+            "type": "string",
+            "maxLength": 500
+          }
         }
       }
     }

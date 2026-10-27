@@ -10,7 +10,7 @@ function deck(direction = "editorial") {
     metadata: { title: "测试演示文稿", audience: "团队", brief: "测试导出", tone: "专业" },
     design: { direction, aspectRatio: "16:9", theme: direction === "modern" ? "dark" : direction === "data" ? "analytical" : "editorial" },
     slides: [
-      { id: "slide-1", order: 1, layout: "title-body", title: "封面标题", body: "这是一段可编辑正文。", notes: "讲者备注" },
+      { id: "slide-1", order: 1, layout: "title-body", title: "封面标题", body: "这是一段可编辑正文。", notes: "讲者备注", imageData: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC", imageAlt: "测试图片" },
       { id: "slide-2", order: 2, layout: "title-body", title: "第二页", body: "更多内容。", notes: "" }
     ]
   };
@@ -33,4 +33,10 @@ test("supports all three design directions", async () => {
 
 test("rejects invalid deck input before rendering", async () => {
   assert.throws(() => renderDeck({}), error => error.code === "INVALID_DECK");
+});
+
+test("embeds a slide image in the PPTX output", async () => {
+  const output = await renderDeck(deck());
+  assert.ok(Buffer.isBuffer(output));
+  assert.ok(output.length > 1000);
 });

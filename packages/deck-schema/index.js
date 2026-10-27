@@ -44,6 +44,15 @@ function validateDeck(deck) {
       if (typeof slide.title === "string" && slide.title.length > 300) errors.push(prefix + ".title exceeds 300 characters");
       if (typeof slide.body === "string" && slide.body.length > 10000) errors.push(prefix + ".body exceeds 10000 characters");
       if (!Number.isInteger(slide.order) || slide.order < 1) errors.push(prefix + ".order must be a positive integer");
+      if (slide.imageData !== undefined) {
+        if (typeof slide.imageData !== "string" || slide.imageData.length > 700000 || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(slide.imageData)) {
+          errors.push(prefix + ".imageData must be a PNG, JPEG, or WebP data URL under 700 KB");
+        }
+      }
+      if (slide.imageAlt !== undefined && (typeof slide.imageAlt !== "string" || slide.imageAlt.length > 300)) {
+        errors.push(prefix + ".imageAlt must be a string up to 300 characters");
+      }
+      if (slide.imageSource !== undefined && (typeof slide.imageSource !== "string" || slide.imageSource.length > 500)) errors.push(prefix + ".imageSource must be a string up to 500 characters");
       if (slide.layout !== "title-body") errors.push(prefix + ".layout is unsupported");
     });
   }
