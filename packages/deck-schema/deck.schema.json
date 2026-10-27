@@ -104,7 +104,8 @@
             "enum": [
               "title-body",
               "section-divider",
-              "metric-highlight"
+              "metric-highlight",
+              "chart"
             ]
           },
           "title": {
@@ -139,6 +140,32 @@
           "metricLabel": {
             "type": "string",
             "maxLength": 120
+          },
+          "chartType": {
+            "enum": [
+              "bar",
+              "line"
+            ]
+          },
+          "chartLabels": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
+          },
+          "chartValues": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 8,
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000000
+            }
           }
         },
         "allOf": [
@@ -157,6 +184,25 @@
               "required": [
                 "metricValue",
                 "metricLabel"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "layout": {
+                  "const": "chart"
+                }
+              },
+              "required": [
+                "layout"
+              ]
+            },
+            "then": {
+              "required": [
+                "chartType",
+                "chartLabels",
+                "chartValues"
               ]
             }
           }
