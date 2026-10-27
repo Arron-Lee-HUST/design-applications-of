@@ -4,6 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { renderDeck } = require("./packages/render-pptx");
+const { generateDeck } = require("./packages/ai-provider");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
@@ -39,6 +40,17 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { status: "ok", service: "design-studio-export", pptx: true });
+  }
+  if (req.method === "POST" && url.pathname === "/api/generate/deck") {
+    try {
+      const input = await readJson(req);
+      const deck = await generateDeck(input);
+      return sendJson(res, 200, deck);
+    } catch (error) {
+      if (res.destroyed) return;
+      const status = error.statusCode || (error.code === "AI_NOT_CONFIGURED" ? 503 : error.code === "INVALID_BRIEF" ? 400 : error.code === "AI_UPSTREAM_ERROR" ? 502 : error.code === "AI_INVALID_OUTPUT" ? 502 : 500);
+      return sendJson(res, status, { error: error.message, code: error.code || "INTERNAL_ERROR", details: error.details || undefined });
+    }
   }
   if (req.method === "POST" && url.pathname === "/api/export/pptx") {
     try {
