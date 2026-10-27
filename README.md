@@ -9,10 +9,11 @@
 3. 编辑故事线和逐页标题/正文。
 4. 使用版本化 `DeckDocument 1.0.0` 作为结构化数据格式。
 5. 导入/导出 JSON，并在浏览器本地自动保存草稿。
-6. 运行确定性质量检查，或在配置 AI 后获取 AI 设计评审建议。
-7. 导出 HTML 幻灯片、响应式静态网页，或可继续编辑的 PowerPoint（PPTX）。
-8. 配置 OpenAI-compatible Chat Completions 服务后，根据项目简报生成完整页面大纲。
-9. 配置可选的 Pexels API Key 后，可按页面搜索在线图片，并将所选图片导入 Deck，同时保留摄影师与来源链接。
+6. 在同一浏览器中创建、切换、复制、重命名和删除多个项目；旧版单草稿会在首次启动时迁移。
+7. 运行确定性质量检查，或在配置 AI 后获取 AI 设计评审建议。
+8. 导出 HTML 幻灯片、响应式静态网页，或可继续编辑的 PowerPoint（PPTX）。
+9. 配置 OpenAI-compatible Chat Completions 服务后，根据项目简报生成完整页面大纲。
+10. 配置可选的 Pexels API Key 后，可按页面搜索在线图片，并将所选图片导入 Deck，同时保留摄影师与来源链接。
 
 ## 快速开始
 
@@ -91,7 +92,7 @@ npm start
 npm test
 ```
 
-测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 输出 smoke test、AI Provider mock、HTTP API 集成、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 输出 smoke test、AI Provider mock、HTTP API 集成、Pexels 素材适配器、工作台脚本语法和项目管理控件检查、质量检查和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
 
 ## 项目结构
 
@@ -116,10 +117,10 @@ npm test
 
 ## 当前限制
 
-- 项目/草稿保存在当前浏览器的 localStorage；尚无用户账户或云端持久化。
+- 多项目保存在当前浏览器的 localStorage，不会在设备或浏览器之间同步；清除网站数据前请导出 JSON 备份。包含大量嵌入图片时可能触及浏览器存储配额。尚无用户账户或云端持久化。
 - AI 生成依赖用户自行配置兼容服务；没有内置 API Key。
 - AI 评审提供建议，不是事实核验系统。
-- 暂无图片素材搜索、图像版权/归属追踪、图表自动生成、通用网站路由和数据库表单。
+- 图片搜索目前仅支持可选的 Pexels 服务；应用会保留摄影师和来源链接，但不会自动判定授权是否合法。多图库聚合、图表自动生成、通用网站路由和数据库表单仍未实现。
 - 需要在目标环境运行 `npm test`，并在 PowerPoint/LibreOffice 与主流浏览器中进行最终验收。
 
 ## 安全提示
