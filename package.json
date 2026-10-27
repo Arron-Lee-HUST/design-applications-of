@@ -11,6 +11,6 @@
     "pptxgenjs": "^4.0.1"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }
