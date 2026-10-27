@@ -102,7 +102,9 @@
           },
           "layout": {
             "enum": [
-              "title-body"
+              "title-body",
+              "section-divider",
+              "metric-highlight"
             ]
           },
           "title": {
@@ -129,8 +131,36 @@
           "imageSource": {
             "type": "string",
             "maxLength": 500
+          },
+          "metricValue": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "metricLabel": {
+            "type": "string",
+            "maxLength": 120
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "layout": {
+                  "const": "metric-highlight"
+                }
+              },
+              "required": [
+                "layout"
+              ]
+            },
+            "then": {
+              "required": [
+                "metricValue",
+                "metricLabel"
+              ]
+            }
+          }
+        ]
       }
     }
   }
