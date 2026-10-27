@@ -1,9 +1,9 @@
 # Phase 5 — Quality Review and Draft Recovery
 
 ## Delivered
-- Adds a deterministic deck quality checker for structural validity, empty content, repeated titles, long titles, dense body text, unusually short/long decks, and optional speaker notes.
+- Adds a deterministic deck quality checker for structural validity, empty content, repeated titles and body copy, long titles, dense body text, unusually short/long decks, chart/metric layout mismatches, image alt/source metadata, and optional speaker notes.
 - Exposes the report through `POST /api/quality/check`.
-- Adds a UI action to display a quality score and actionable findings.
+- Displays actionable fixes and labels deterministic rule findings separately from AI-generated suggestions; slide-level findings can jump directly to the relevant slide.
 - Autosaves the current deck to browser localStorage and adds a restore-draft action.
 - Draft storage remains local to the current browser; no server-side account or database is required.
 

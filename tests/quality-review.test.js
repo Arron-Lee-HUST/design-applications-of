@@ -37,3 +37,28 @@ test("blocks invalid schema input", () => {
   assert.equal(result.status, "blocked");
   assert.equal(result.score, 0);
 });
+
+
+test("provides actionable deterministic findings for layout mismatch and missing image metadata", () => {
+  const deck = sample();
+  deck.slides[1] = { ...deck.slides[1], layout: "metric-highlight", metricValue: "", metricLabel: "", imageData: "data:image/png;base64,AAAA", imageAlt: "", imageSource: "" };
+  const result = reviewDeck(deck);
+  const metric = result.findings.find(x => x.code === "METRIC_INCOMPLETE");
+  assert.ok(metric);
+  assert.equal(metric.source, "rule");
+  assert.match(metric.recommendation, /指标数值/);
+  assert.ok(result.findings.some(x => x.code === "IMAGE_ALT_MISSING"));
+  assert.ok(result.findings.some(x => x.code === "IMAGE_SOURCE_MISSING"));
+});
+
+test("flags duplicated body copy and chart label/value mismatch with slide numbers", () => {
+  const deck = sample();
+  deck.slides[1].body = deck.slides[0].body;
+  deck.slides[2] = { ...deck.slides[2], layout: "chart", chartLabels: ["2024", "2025", "2026"], chartValues: [12, 20] };
+  const result = reviewDeck(deck);
+  const duplicate = result.findings.find(x => x.code === "DUPLICATE_CONTENT");
+  const chart = result.findings.find(x => x.code === "CHART_DATA_MISMATCH");
+  assert.equal(duplicate.slide, 2);
+  assert.equal(chart.slide, 3);
+  assert.match(chart.recommendation, /一一对应/);
+});
