@@ -80,6 +80,7 @@ function renderDeck(deck) {
         x: 8.0, y: 3.15, w: 4.3, h: 2.65,
         altText: item.imageAlt || item.title || "Slide image"
       });
+      if (item.imageSource) slide.addText("Image source: " + item.imageSource, { x: 8.0, y: 5.9, w: 4.3, h: 0.35, fontFace: "Aptos", fontSize: 7, color: theme.muted, margin: 0, fit: "shrink" });
     }
     slide.addText(item.title, {
       x: 0.75, y: 1.55, w: hasImage ? 6.8 : 10.5, h: 1.65,
