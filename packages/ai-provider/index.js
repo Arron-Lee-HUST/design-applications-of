@@ -127,7 +127,7 @@ async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
     error.code = "AI_NOT_CONFIGURED";
     throw error;
   }
-  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(new RegExp("/+$"), "");
   const model = env.AI_MODEL || "gpt-4o-mini";
   const compact = {
     title: deck.metadata.title,
@@ -184,7 +184,7 @@ async function rewriteSlide(deck, slideIndex, instruction, env = process.env, fe
   if (!request) throw Object.assign(new Error("请填写本页修改要求"), { code: "INVALID_INSTRUCTION" });
   const apiKey = env.AI_API_KEY;
   if (!apiKey) throw Object.assign(new Error("尚未配置 AI_API_KEY。请在服务端环境变量中配置。"), { code: "AI_NOT_CONFIGURED" });
-  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const baseUrl = String(env.AI_BASE_URL || "https://api.openai.com/v1").replace(new RegExp("/+$"), "");
   const model = env.AI_MODEL || "gpt-4o-mini";
   const current = deck.slides[slideIndex];
   const neighbors = deck.slides.map((slide, index) => ({ slide: index + 1, title: slide.title })).filter(item => Math.abs(item.slide - (slideIndex + 1)) <= 1);
