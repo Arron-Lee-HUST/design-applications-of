@@ -7,6 +7,7 @@ const { renderDeck } = require("./packages/render-pptx");
 const { generateDeck, reviewDeckWithAI, rewriteSlide } = require("./packages/ai-provider");
 const { reviewDeck } = require("./packages/design-workflow/quality");
 const { renderWebsite } = require("./packages/render-html");
+const { searchPexels, importPexelsImage } = require("./packages/assets/pexels");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
@@ -42,6 +43,24 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { status: "ok", service: "design-studio-export", pptx: true });
+  }
+  if (req.method === "GET" && url.pathname === "/api/assets/search") {
+    try {
+      const result = await searchPexels(url.searchParams.get("q"));
+      return sendJson(res, 200, result);
+    } catch (error) {
+      return sendJson(res, error.statusCode || 500, { error: error.message, code: error.code || "INTERNAL_ERROR" });
+    }
+  }
+  if (req.method === "POST" && url.pathname === "/api/assets/import") {
+    try {
+      const input = await readJson(req);
+      const result = await importPexelsImage(input);
+      return sendJson(res, 200, result);
+    } catch (error) {
+      if (res.destroyed) return;
+      return sendJson(res, error.statusCode || 500, { error: error.message, code: error.code || "INTERNAL_ERROR" });
+    }
   }
   if (req.method === "POST" && url.pathname === "/api/export/site") {
     try {
