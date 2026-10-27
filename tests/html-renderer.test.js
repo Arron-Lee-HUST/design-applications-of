@@ -10,7 +10,7 @@ function deck() {
     metadata: { title: "<Launch & Learn>", audience: "Teams", brief: "A concise project overview.", tone: "Clear" },
     design: { direction: "editorial", aspectRatio: "16:9", theme: "editorial" },
     slides: [
-      { id: "s1", order: 1, layout: "title-body", title: "Problem & context", body: "Explain the problem.", notes: "", imageData: "data:image/png;base64,AAAA", imageAlt: "Diagram" },
+      { id: "s1", order: 1, layout: "title-body", title: "Problem & context", body: "Explain the problem.", notes: "", imageData: "data:image/png;base64,AAAA", imageAlt: "Diagram", imageSource: "Author / CC BY 4.0" },
       { id: "s2", order: 2, layout: "title-body", title: "Solution", body: "Describe the approach.", notes: "" }
     ]
   };
@@ -40,4 +40,5 @@ test("renders embedded images with escaped alternative text", () => {
   assert.match(html, /class="story-image"/);
   assert.match(html, /src="data:image\/png;base64,AAAA"/);
   assert.match(html, /alt="Diagram"/);
+  assert.match(html, /图片来源：Author \/ CC BY 4\.0/);
 });
