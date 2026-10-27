@@ -73,14 +73,22 @@ function renderDeck(deck) {
       fontFace: "Aptos", fontSize: 9, charSpacing: 2.2,
       color: theme.muted, margin: 0, breakLine: false
     });
+    const hasImage = typeof item.imageData === "string" && item.imageData.length > 0;
+    if (hasImage) {
+      slide.addImage({
+        data: item.imageData,
+        x: 8.0, y: 3.15, w: 4.3, h: 2.65,
+        altText: item.imageAlt || item.title || "Slide image"
+      });
+    }
     slide.addText(item.title, {
-      x: 0.75, y: 1.55, w: 10.5, h: 1.65,
+      x: 0.75, y: 1.55, w: hasImage ? 6.8 : 10.5, h: 1.65,
       fontFace: theme.font, fontSize: 30, bold: true,
       color: theme.ink, margin: 0, breakLine: false,
       valign: "mid", fit: "shrink"
     });
     slide.addText(item.body, {
-      x: 0.78, y: 3.55, w: 9.4, h: 1.8,
+      x: 0.78, y: 3.55, w: hasImage ? 6.5 : 9.4, h: 1.8,
       fontFace: "Aptos", fontSize: 18, color: theme.muted,
       margin: 0, breakLine: false, valign: "top", fit: "shrink",
       paraSpaceAfterPt: 8
