@@ -62,3 +62,16 @@ test("AI review returns bounded, normalized findings", async () => {
   assert.equal(result.findings[0].slide, 1);
   assert.equal(result.findings[0].severity, "warning");
 });
+
+test("rewrites one slide using a structured response", async () => {
+  const { rewriteSlide } = require("../packages/ai-provider");
+  const deck = {
+    schemaVersion: "1.0.0",
+    metadata: { title: "Deck", audience: "Team", brief: "Brief", tone: "Clear" },
+    design: { direction: "editorial", aspectRatio: "16:9", theme: "editorial" },
+    slides: [{ id: "s1", order: 1, layout: "title-body", title: "Old title", body: "Old body", notes: "" }]
+  };
+  const fakeFetch = async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: JSON.stringify({ title: "New title", body: "New body", notes: "New notes" }) } }] }) });
+  const result = await rewriteSlide(deck, 0, "Make it clearer", { AI_API_KEY: "test" }, fakeFetch);
+  assert.deepEqual(result, { title: "New title", body: "New body", notes: "New notes" });
+});
