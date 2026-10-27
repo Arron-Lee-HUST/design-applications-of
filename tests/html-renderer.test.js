@@ -55,3 +55,17 @@ test("renders section-divider and metric-highlight website layouts", () => {
   assert.match(html, /class="metric-callout"/);
   assert.match(html, /Conversion &lt; improvement/);
 });
+
+test("renders accessible SVG charts and escapes chart labels", () => {
+  const input = deck();
+  input.slides[0].layout = "chart";
+  input.slides[0].chartType = "bar";
+  input.slides[0].chartLabels = ["Q<1", "Q2", "Q3"];
+  input.slides[0].chartValues = [12, 18, 24];
+  const html = renderWebsite(input);
+  assert.match(html, /class="chart-wrap"/);
+  assert.match(html, /<svg viewBox="0 0 600 205"/);
+  assert.match(html, /<rect /);
+  assert.match(html, /Q&lt;1/);
+  assert.doesNotMatch(html, /<text[^>]*>Q<1<\/text>/);
+});
