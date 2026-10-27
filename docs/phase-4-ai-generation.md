@@ -18,7 +18,7 @@ Set these environment variables before starting the server:
 The provider must implement an OpenAI-compatible `POST /chat/completions` endpoint and accept `response_format: { type: "json_object" }`. For local inference, set `AI_BASE_URL` to the local service API root and set the model name supported by that service.
 
 ## Design
-The browser sends only the brief, desired slide count, and selected design direction. Credentials are never sent to the browser. Generation times out after 45 seconds. Inputs are bounded; output is parsed, capped, and validated against the deck model. The model is instructed not to invent statistics, citations, or research findings.
+The browser sends only the brief, desired slide count, and selected design direction. Credentials are never sent to the browser. Generation times out after 45 seconds. Inputs are bounded; output is parsed, capped, and validated against the deck model. The model is instructed not to invent statistics, citations, or research findings. It may choose section-divider, metric-highlight, or chart layouts; numeric layouts are accepted only when their numeric values are present in the brief, otherwise they fall back to title-body.
 
 ## Limitations
 Provider compatibility varies: some OpenAI-compatible services ignore JSON mode or use different response envelopes. Those responses fail validation and show an error rather than silently replacing the current deck. Generation requires the user to configure a provider; no default key is bundled.
