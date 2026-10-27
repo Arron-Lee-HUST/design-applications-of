@@ -22,3 +22,6 @@ The browser sends only the brief, desired slide count, and selected design direc
 
 ## Limitations
 Provider compatibility varies: some OpenAI-compatible services ignore JSON mode or use different response envelopes. Those responses fail validation and show an error rather than silently replacing the current deck. Generation requires the user to configure a provider; no default key is bundled.
+
+## AI design review
+The editor also offers **AI 设计评审**, backed by `POST /api/review/deck`. It reviews narrative progression, repetition, readability, density, audience fit, and unsupported factual claims, returning at most 12 slide-specific suggestions. It does not silently rewrite the deck; the author decides which suggestions to apply. The review is advisory and cannot verify facts without source material.
