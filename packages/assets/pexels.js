@@ -7,6 +7,32 @@ function assetError(message, code, statusCode) {
   return Object.assign(new Error(message), { code, statusCode });
 }
 
+async function readBoundedBody(response) {
+  if (response.body && typeof response.body.getReader === "function") {
+    const reader = response.body.getReader();
+    const chunks = [];
+    let size = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > MAX_IMAGE_BYTES) {
+          await reader.cancel();
+          throw assetError("图片超过 500 KB，请选择较小的预览图", "ASSET_TOO_LARGE", 413);
+        }
+        chunks.push(Buffer.from(value));
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    return Buffer.concat(chunks, size);
+  }
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length > MAX_IMAGE_BYTES) throw assetError("图片超过 500 KB，请选择较小的预览图", "ASSET_TOO_LARGE", 413);
+  return bytes;
+}
+
 async function searchPexels(query, env = process.env, fetchImpl = fetch) {
   const term = String(query || "").trim().slice(0, 120);
   if (term.length < 2) throw assetError("图片搜索词至少需要 2 个字符", "INVALID_ASSET_QUERY", 400);
@@ -65,8 +91,8 @@ async function importPexelsImage(input, fetchImpl = fetch) {
   if (!mime) throw assetError("图片格式不受支持，仅接受 JPEG、PNG 或 WebP", "INVALID_ASSET_TYPE", 415);
   const declaredLength = Number(response.headers.get("content-length") || 0);
   if (declaredLength > MAX_IMAGE_BYTES) throw assetError("图片超过 500 KB，请选择较小的预览图", "ASSET_TOO_LARGE", 413);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) throw assetError("图片为空或超过 500 KB", "ASSET_TOO_LARGE", 413);
+  const bytes = await readBoundedBody(response);
+  if (!bytes.length) throw assetError("图片内容为空", "ASSET_TOO_LARGE", 413);
   const alt = String(input.alt || "Pexels 图片").trim().slice(0, 300) || "Pexels 图片";
   const photographer = String(input.photographer || "Unknown").trim().slice(0, 120) || "Unknown";
   return {
