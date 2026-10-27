@@ -51,3 +51,16 @@ test("renders section-divider and metric-highlight layouts", async () => {
   assert.ok(Buffer.isBuffer(output));
   assert.ok(output.length > 1000);
 });
+
+test("renders native editable bar and line charts", async () => {
+  for (const chartType of ["bar", "line"]) {
+    const input = deck();
+    input.slides[0].layout = "chart";
+    input.slides[0].chartType = chartType;
+    input.slides[0].chartLabels = ["2022", "2023", "2024"];
+    input.slides[0].chartValues = [12, 18, 24];
+    const output = await renderDeck(input);
+    assert.ok(Buffer.isBuffer(output));
+    assert.ok(output.length > 1000);
+  }
+});
