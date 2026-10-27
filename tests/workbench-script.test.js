@@ -28,3 +28,15 @@ test("project manager exposes create, switch, duplicate, rename, and delete cont
 test("project manager retains a migration path from the earlier single-draft key", () => {
   assert.ok(html.includes('localStorage.getItem("design-studio-draft")'));
 });
+
+test("slide outline exposes accessible reorder and duplicate controls", () => {
+  assert.ok(html.includes('data-up="'));
+  assert.ok(html.includes('data-down="'));
+  assert.ok(html.includes('data-duplicate="'));
+  assert.ok(html.includes('aria-label="上移页面"'));
+  assert.ok(html.includes('aria-label="下移页面"'));
+  assert.ok(html.includes('aria-label="复制页面"'));
+  assert.ok(html.includes("function moveSlide(index,delta)"));
+  assert.ok(html.includes("function duplicateSlide(index)"));
+  assert.ok(html.includes("if(slides.length>=100)"));
+});
