@@ -40,3 +40,14 @@ test("slide outline exposes accessible reorder and duplicate controls", () => {
   assert.ok(html.includes("function duplicateSlide(index)"));
   assert.ok(html.includes("if(slides.length>=100)"));
 });
+
+test("workbench exposes undo/redo history controls with a bounded history", () => {
+  assert.ok(html.includes('id="undo"'));
+  assert.ok(html.includes('id="redo"'));
+  assert.ok(html.includes("function historySnapshot()"));
+  assert.ok(html.includes("function undoEdit()"));
+  assert.ok(html.includes("function redoEdit()"));
+  assert.ok(html.includes("if(undoStack.length>100)undoStack.shift()"));
+  assert.ok(html.includes("function applyHistorySnapshot(raw)"));
+  assert.ok(html.includes("resetHistory();"));
+});
