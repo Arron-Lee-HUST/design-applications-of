@@ -133,8 +133,10 @@ const server = http.createServer(async (req, res) => {
   res.end("Not found");
 });
 
-server.listen(PORT, () => {
-  console.log("Design Studio running at http://localhost:" + PORT);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log("Design Studio running at http://localhost:" + server.address().port);
+  });
+}
 
 module.exports = { server, readJson };
