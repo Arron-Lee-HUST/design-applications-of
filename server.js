@@ -4,7 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { renderDeck } = require("./packages/render-pptx");
-const { generateDeck, reviewDeckWithAI, rewriteSlide } = require("./packages/ai-provider");
+const { generateDeck, reviewDeckWithAI, diagnoseStorylineWithAI, rewriteSlide } = require("./packages/ai-provider");
 const { reviewDeck } = require("./packages/design-workflow/quality");
 const { renderWebsite } = require("./packages/render-html");
 const { searchPexels, importPexelsImage } = require("./packages/assets/pexels");
@@ -129,6 +129,10 @@ const server = http.createServer(async (req, res) => {
       const status = error.statusCode || (error.code === "AI_NOT_CONFIGURED" ? 503 : ["INVALID_DECK", "INVALID_SLIDE_INDEX", "INVALID_INSTRUCTION"].includes(error.code) ? 400 : ["AI_UPSTREAM_ERROR", "AI_INVALID_OUTPUT"].includes(error.code) ? 502 : 500);
       return sendJson(res, status, { error: error.message, code: error.code || "INTERNAL_ERROR", details: error.details || undefined });
     }
+  }
+  if (req.method === "POST" && url.pathname === "/api/storyline/diagnose") {
+    try { const deck=await readJson(req);return sendJson(res,200,await diagnoseStorylineWithAI(deck)); }
+    catch(error){if(res.destroyed)return;const status=error.statusCode||(error.code==="AI_NOT_CONFIGURED"?503:error.code==="INVALID_DECK"?422:["AI_UPSTREAM_ERROR","AI_INVALID_OUTPUT"].includes(error.code)?502:500);return sendJson(res,status,{error:error.message,code:error.code||"INTERNAL_ERROR",details:error.details||undefined});}
   }
   if (req.method === "POST" && url.pathname === "/api/review/deck") {
     try {
