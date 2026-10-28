@@ -63,6 +63,19 @@ test("AI review returns bounded, normalized findings", async () => {
   assert.equal(result.findings[0].severity, "warning");
 });
 
+test("AI storyline diagnosis validates recommendations and bounds findings", async () => {
+ const {diagnoseStorylineWithAI}=require("../packages/ai-provider");
+ const deck={schemaVersion:"1.0.0",metadata:{title:"Deck",audience:"Team",brief:"Brief",tone:"Clear"},design:{direction:"editorial",aspectRatio:"16:9",theme:"editorial"},slides:[{id:"s1",order:1,layout:"title-body",title:"Intro",body:"Context",notes:""},{id:"s2",order:2,layout:"title-body",title:"Conclusion",body:"Action",notes:""}]};
+ const fakeFetch=async()=>({ok:true,status:200,json:async()=>({choices:[{message:{content:JSON.stringify({coreArgument:"Main point",narrativeArc:"Context to action",findings:[{slide:2,severity:"warning",issue:"Evidence missing",suggestion:"Add source"}],recommendedOrder:[2,1]})}}]})});
+ const result=await diagnoseStorylineWithAI(deck,{AI_API_KEY:"test"},fakeFetch);assert.equal(result.coreArgument,"Main point");assert.equal(result.orderValidated,true);assert.deepEqual(result.recommendedOrder,[2,1]);assert.equal(result.findings[0].slide,2);
+});
+test("AI storyline diagnosis falls back to original order for invalid model ordering", async () => {
+ const {diagnoseStorylineWithAI}=require("../packages/ai-provider");
+ const deck={schemaVersion:"1.0.0",metadata:{title:"Deck",audience:"Team",brief:"Brief",tone:"Clear"},design:{direction:"editorial",aspectRatio:"16:9",theme:"editorial"},slides:[{id:"s1",order:1,layout:"title-body",title:"Intro",body:"Context",notes:""},{id:"s2",order:2,layout:"title-body",title:"Conclusion",body:"Action",notes:""}]};
+ const fakeFetch=async()=>({ok:true,status:200,json:async()=>({choices:[{message:{content:JSON.stringify({findings:[],recommendedOrder:[2,2]})}}]})});
+ const result=await diagnoseStorylineWithAI(deck,{AI_API_KEY:"test"},fakeFetch);assert.equal(result.orderValidated,false);assert.deepEqual(result.recommendedOrder,[1,2]);
+});
+
 test("rewrites one slide using a structured response", async () => {
   const { rewriteSlide } = require("../packages/ai-provider");
   const deck = {
