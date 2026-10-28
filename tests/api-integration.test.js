@@ -82,6 +82,7 @@ test("website export returns a standalone HTML document", async () => {
   assert.match(html, /Overview/);
 });
 
+test("AI storyline diagnosis reports an actionable configuration error when no key is set", async () => { const response=await fetch(`${baseUrl}/api/storyline/diagnose`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(deck)});assert.equal(response.status,503);assert.equal((await response.json()).code,"AI_NOT_CONFIGURED"); });
 test("AI rewrite reports an actionable configuration error when no key is set", async () => {
   const response = await fetch(`${baseUrl}/api/regenerate/slide`, {
     method: "POST",
