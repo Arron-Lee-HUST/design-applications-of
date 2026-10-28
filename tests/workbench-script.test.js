@@ -78,15 +78,15 @@ test("content splitting preserves source wording and groups paragraphs and bulle
   const match = html.match(/function splitContentIntoSegments\(body,maxChars=230,maxItems=4\)\{[\s\S]*?\n\}/);
   assert.ok(match, "content splitter should be defined");
   const splitContentIntoSegments = vm.runInNewContext("(" + match[0] + ")");
-  const body = "第一段介绍背景。\\n\\n第二段说明问题。\\n\\n第三段给出方案。\\n\\n第四段说明落地。";
+  const body = "第一段介绍背景。\n\n第二段说明问题。\n\n第三段给出方案。\n\n第四段说明落地。";
   const segments = splitContentIntoSegments(body, 20, 4);
   assert.ok(segments.length >= 2);
-  assert.equal(segments.join(" ").replace(/\\s+/g, ""), body.replace(/\\s+/g, ""));
+  assert.equal(segments.join(" ").replace(/\s+/g, ""), body.replace(/\s+/g, ""));
   assert.equal(splitContentIntoSegments("只有一条短句。").length, 0);
-  const bullets = "- 第一项\\n- 第二项\\n- 第三项\\n- 第四项\\n- 第五项";
+  const bullets = "- 第一项\n- 第二项\n- 第三项\n- 第四项\n- 第五项";
   const bulletSegments = splitContentIntoSegments(bullets, 230, 2);
   assert.ok(bulletSegments.length >= 2);
-  assert.equal(bulletSegments.join(" ").replace(/\\s+/g, ""), bullets.replace(/\\s+/g, ""));
+  assert.equal(bulletSegments.join(" ").replace(/\s+/g, ""), bullets.replace(/\s+/g, ""));
 });
 
 test("content split workflow previews before apply and supports undo", () => {
