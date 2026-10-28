@@ -10,7 +10,7 @@ function suggestLayoutForSlide(slide){
   if(labels.length>=2&&labels.length<=8&&labels.length===values.length&&values.every(v=>typeof v==="number"&&Number.isFinite(v))&&currentLayout!=="chart")
     return {layout:"chart",reason:"当前页已有 "+labels.length+" 组有效分类与数值，图表布局可以更直接地呈现比较关系。"};
   const hasMetric=String(slide.metricValue||"").trim()&&String(slide.metricLabel||"").trim();
-  const metricMention=/(?:^|\\s)\\d+(?:\\.\\d+)?\\s?(?:%|倍|万元|亿元|万|亿|天|人|家|项)/.test(title+" "+body);
+  const metricMention=/(?:^|\s)\d+(?:\.\d+)?\s?(?:%|倍|万元|亿元|万|亿|天|人|家|项)/.test(title+" "+body);
   if((hasMetric||metricMention)&&body.length<=220&&currentLayout!=="metric-highlight")
     return {layout:"metric-highlight",reason:hasMetric?"当前页已经包含指标数值和说明，突出指标有助于建立视觉焦点。":"标题或正文包含明确的数值型指标，可考虑突出显示；应用前请核对数值及其来源。",needsMetric:!hasMetric};
   if(/^(?:第[一二三四五六七八九十0-9]+章|章节|总结|结论|下一步|行动计划|路线图|议程|Agenda|Conclusion|Next steps)/i.test(title)&&body.length<=100&&currentLayout!=="section-divider")
