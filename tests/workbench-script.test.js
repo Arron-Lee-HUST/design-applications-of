@@ -21,6 +21,7 @@ test("storyline planner previews narrative roles and requires explicit apply wit
   assert.ok(html.includes("自动分类只是启发式判断"));
 });
 
+test("AI storyline diagnosis has a preview-first interface and API wiring", () => { for(const id of ["aiStorylineReview","aiStorylineStatus","aiStorylineFindings"])assert.ok(html.includes('id="'+id+'"'));assert.ok(html.includes('fetch("/api/storyline/diagnose"'));assert.ok(html.includes("function runAIStorylineReview()"));assert.ok(html.includes("AI 推荐顺序仅供参考")); });
 test("workbench inline JavaScript parses successfully", () => {
   const start = html.indexOf("<script>");
   const end = html.lastIndexOf("</script>");

@@ -202,6 +202,20 @@ async function reviewDeckWithAI(deck, env = process.env, fetchImpl = fetch) {
 }
 
 
+async function diagnoseStorylineWithAI(deck, env = process.env, fetchImpl = fetch) {
+ const validation=validateDeck(deck);if(!validation.valid)throw Object.assign(new Error("Invalid deck: "+validation.errors.join("; ")),{code:"INVALID_DECK",details:validation.errors});
+ const apiKey=env.AI_API_KEY;if(!apiKey)throw Object.assign(new Error("尚未配置 AI_API_KEY。请在服务端环境变量中配置。"),{code:"AI_NOT_CONFIGURED"});
+ const baseUrl=String(env.AI_BASE_URL||"https://api.openai.com/v1").replace(new RegExp("/+$"),""),model=env.AI_MODEL||"gpt-4o-mini";
+ const compact={title:String(deck.metadata?.title||"").slice(0,300),audience:String(deck.metadata?.audience||"").slice(0,500),brief:String(deck.metadata?.brief||"").slice(0,3000),slides:deck.slides.map((x,i)=>({slide:i+1,title:x.title.slice(0,300),body:x.body.slice(0,1800)}))};
+ let response;try{response=await fetchImpl(baseUrl+"/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+apiKey,"Content-Type":"application/json"},body:JSON.stringify({model,temperature:0.2,response_format:{type:"json_object"},messages:[{role:"system",content:"你是严谨的演示文稿叙事编辑。只返回 JSON，不得虚构证据、数字、引用或事实。将缺少证据标为待验证，而不是推断其为假。"},{role:"user",content:"诊断整套演示文稿的核心论点、叙事弧线、逻辑跳跃、重复内容与证据缺口。只给可执行建议，不要改写页面。推荐顺序必须是原页面编号的完整排列，不能增加、删除或重复编号。返回 JSON：{\"coreArgument\":\"...\",\"narrativeArc\":\"...\",\"findings\":[{\"slide\":1,\"severity\":\"error|warning|info\",\"issue\":\"...\",\"suggestion\":\"...\"}],\"recommendedOrder\":[1,2]}。最多 10 条建议。\n"+JSON.stringify(compact)}]}),signal:AbortSignal.timeout(45000)});}catch(error){throw Object.assign(new Error("调用 AI 故事线诊断失败："+(error.name==="TimeoutError"?"请求超时":error.message)),{code:"AI_UPSTREAM_ERROR"});}
+ if(!response.ok)throw Object.assign(new Error("AI 服务返回 HTTP "+response.status),{code:"AI_UPSTREAM_ERROR",statusCode:502});
+ const payload=await response.json(),parsed=parseJsonContent(payload?.choices?.[0]?.message?.content);
+ if(!Array.isArray(parsed.findings)||!Array.isArray(parsed.recommendedOrder))throw Object.assign(new Error("AI 故事线诊断结果格式无效"),{code:"AI_INVALID_OUTPUT"});
+ const findings=parsed.findings.slice(0,10).map(x=>({slide:Number.isInteger(x.slide)&&x.slide>=1&&x.slide<=deck.slides.length?x.slide:null,severity:["error","warning","info"].includes(x.severity)?x.severity:"info",issue:String(x.issue||"未提供问题描述").slice(0,500),suggestion:String(x.suggestion||"请人工复核。").slice(0,1000)}));
+ const order=parsed.recommendedOrder,valid=order.length===deck.slides.length&&new Set(order).size===deck.slides.length&&order.every(n=>Number.isInteger(n)&&n>=1&&n<=deck.slides.length);
+ return {model,coreArgument:String(parsed.coreArgument||"未能提炼核心论点").slice(0,1000),narrativeArc:String(parsed.narrativeArc||"请人工复核叙事顺序").slice(0,1500),findings,recommendedOrder:valid?order:deck.slides.map((_,i)=>i+1),orderValidated:valid,note:"AI 诊断是编辑建议，不是事实核验；推荐顺序仅在人工确认后应用。"};
+}
+
 async function rewriteSlide(deck, slideIndex, instruction, env = process.env, fetchImpl = fetch) {
   const validation = validateDeck(deck);
   if (!validation.valid) throw Object.assign(new Error("Invalid deck: " + validation.errors.join("; ")), { code: "INVALID_DECK", details: validation.errors });
@@ -245,4 +259,4 @@ async function rewriteSlide(deck, slideIndex, instruction, env = process.env, fe
   return result;
 }
 
-module.exports = { generateDeck, reviewDeckWithAI, rewriteSlide, parseJsonContent };
+module.exports = { generateDeck, reviewDeckWithAI, diagnoseStorylineWithAI, rewriteSlide, parseJsonContent };
