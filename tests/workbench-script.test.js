@@ -8,6 +8,19 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
+
+test("storyline planner previews narrative roles and requires explicit apply with undo", () => {
+  for (const id of ["storylinePlanner", "storylineSummary", "storylinePreviewList", "suggestStoryline", "applyStoryline", "undoStoryline", "cancelStoryline"]) {
+    assert.ok(html.includes('id="' + id + '"'), "missing storyline control: " + id);
+  }
+  assert.ok(html.includes("function classifyStoryRole(slide,index,total)"));
+  assert.ok(html.includes("function buildStorylineProposal()"));
+  assert.ok(html.includes("function applyStorylineProposal()"));
+  assert.ok(html.includes("function undoStorylineChange()"));
+  assert.ok(html.includes("lastStorylineChange=slides.slice()"));
+  assert.ok(html.includes("自动分类只是启发式判断"));
+});
+
 test("workbench inline JavaScript parses successfully", () => {
   const start = html.indexOf("<script>");
   const end = html.lastIndexOf("</script>");
