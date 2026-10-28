@@ -92,7 +92,7 @@ npm start
 npm test
 ```
 
-测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 图表 smoke test、AI Provider mock、HTTP API 集成与限流、Pexels 素材适配器、速率限制器、工作台脚本语法和项目管理控件检查、质量检查（含重复内容、布局匹配、图表数据和图片元信息规则）和 HTML 渲染。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
+测试使用 Node.js 内置测试框架，涵盖 Deck Schema、PPTX 图表 smoke test、AI Provider mock、HTTP API 集成与限流、Pexels 素材适配器、速率限制器、工作台脚本语法和项目管理控件检查、质量检查（含重复内容、布局匹配、图表数据和图片元信息规则），并在导出 PPTX 或网页前运行质量预检；存在警告时可返回编辑或确认继续导出。CI workflow 位于 `.github/workflows/test.yml`。请以 GitHub Actions 实际运行结果为准；在没有 CI 运行记录前，不应将测试描述为已通过。
 
 ## API 速率限制
 

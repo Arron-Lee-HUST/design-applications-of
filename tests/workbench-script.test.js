@@ -40,3 +40,11 @@ test("slide outline exposes accessible reorder and duplicate controls", () => {
   assert.ok(html.includes("function duplicateSlide(index)"));
   assert.ok(html.includes("if(slides.length>=100)"));
 });
+
+test("both export flows run a quality preflight and let users review before continuing", () => {
+  assert.ok(html.includes("async function confirmExportQuality(format)"));
+  assert.ok(html.includes('confirmExportQuality("网页")'));
+  assert.ok(html.includes('confirmExportQuality("PPTX")'));
+  assert.ok(html.includes("window.confirm("));
+  assert.ok(html.includes("选择“取消”返回编辑"));
+});
