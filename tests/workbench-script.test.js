@@ -50,7 +50,7 @@ test("both export flows run a quality preflight and let users review before cont
 });
 
 test("layout optimizer provides deterministic, non-mutating suggestions for charts, metrics, and section dividers", () => {
-  const match = html.match(/function suggestLayoutForSlide\\(slide\\)\\{[\\s\\S]*?\\n\\}/);
+  const match = html.match(/function suggestLayoutForSlide\(slide\)\{[\s\S]*?\n\}/);
   assert.ok(match, "layout recommendation function should exist");
   const suggestLayoutForSlide = vm.runInNewContext("(" + match[0] + ")");
   const chart = { title: "季度趋势", body: "对比各季度表现", chartLabels: ["Q1", "Q2", "Q3"], chartValues: [10, 14, 18] };
