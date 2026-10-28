@@ -22,11 +22,11 @@ function suggestLayoutForSlide(slide){
 function splitContentIntoSegments(body,maxChars=230,maxItems=4){
   const text=String(body||"").trim();
   if(!text)return [];
-  const blocks=text.split(/\\n\\s*\\n/).map(x=>x.trim()).filter(Boolean);
+  const blocks=text.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
   const units=[];
   for(const block of blocks){
-    const bulletLines=block.split(/\\n/).map(x=>x.trim()).filter(Boolean);
-    if(bulletLines.length>1&&bulletLines.every(x=>/^(?:[-*•] |\\d+[.)、] )/.test(x))){
+    const bulletLines=block.split(/\n/).map(x=>x.trim()).filter(Boolean);
+    if(bulletLines.length>1&&bulletLines.every(x=>/^(?:[-*•] |\d+[.)、] )/.test(x))){
       units.push(...bulletLines);
       continue;
     }
@@ -43,8 +43,8 @@ function splitContentIntoSegments(body,maxChars=230,maxItems=4){
   if(units.length<=1)return [];
   const segments=[];let currentText="",items=0;
   for(const unit of units){
-    const next=currentText?currentText+"\\n\\n"+unit:unit;
-    const isBullet=/^(?:[-*•] |\\d+[.)、] )/.test(unit);
+    const next=currentText?currentText+"\n\n"+unit:unit;
+    const isBullet=/^(?:[-*•] |\d+[.)、] )/.test(unit);
     if(currentText&&(next.length>maxChars||(isBullet&&items>=maxItems))){
       segments.push(currentText);currentText=unit;items=isBullet?1:0;
     }else{currentText=next;items+=isBullet?1:0;}
