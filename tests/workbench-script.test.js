@@ -73,3 +73,29 @@ test("layout optimizer previews before explicit apply and offers one-step layout
   assert.ok(html.includes("function undoLayoutChange()"));
   assert.ok(html.includes('$("#applyLayout").addEventListener("click",applyLayoutProposal)'));
 });
+
+test("content splitting preserves source wording and groups paragraphs and bullets", () => {
+  const match = html.match(/function splitContentIntoSegments\(body,maxChars=230,maxItems=4\)\{[\s\S]*?\n\}/);
+  assert.ok(match, "content splitter should be defined");
+  const splitContentIntoSegments = vm.runInNewContext("(" + match[0] + ")");
+  const body = "第一段介绍背景。\n\n第二段说明问题。\n\n第三段给出方案。\n\n第四段说明落地。";
+  const segments = splitContentIntoSegments(body, 20, 4);
+  assert.ok(segments.length >= 2);
+  assert.equal(segments.join(" ").replace(/\s+/g, ""), body.replace(/\s+/g, ""));
+  assert.equal(splitContentIntoSegments("只有一条短句。").length, 0);
+  const bullets = "- 第一项\n- 第二项\n- 第三项\n- 第四项\n- 第五项";
+  const bulletSegments = splitContentIntoSegments(bullets, 230, 2);
+  assert.ok(bulletSegments.length >= 2);
+  assert.equal(bulletSegments.join(" ").replace(/\s+/g, ""), bullets.replace(/\s+/g, ""));
+});
+
+test("content split workflow previews before apply and supports undo", () => {
+  for (const id of ["suggestSplit", "splitOptimizer", "splitPreviewList", "applySplit", "undoSplit", "cancelSplit"]) {
+    assert.ok(html.includes('id="' + id + '"'), "missing split workflow control: " + id);
+  }
+  assert.ok(html.includes("function openSplitOptimizer()"));
+  assert.ok(html.includes("function applySplitProposal()"));
+  assert.ok(html.includes("function undoSplitChange()"));
+  assert.ok(html.includes("if(slides.length+splitProposal.segments.length-1>100)"));
+  assert.ok(html.includes('$("#applySplit").addEventListener("click",applySplitProposal)'));
+});
